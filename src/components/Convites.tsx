@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { linkDoConvite, mensagemDeErro, supabase } from '../lib/supabase'
 import type { Convite, TipoConvite } from '../lib/tipos'
 import CompartilharLink from './CompartilharLink'
+import { confirmar } from '../lib/dialogo'
 
 const MENSAGEM: Record<TipoConvite, string> = {
   admin: 'Convite para administrar o Axé Plantas:',
@@ -55,7 +56,7 @@ export default function Convites({ terreiroId, tipo, titulo, explicacao }: {
   }
 
   async function desativar(c: Convite) {
-    if (!confirm('Desativar este link? Quem ainda não usou não vai mais conseguir entrar por ele.')) return
+    if (!(await confirmar('Desativar este link?', { texto: 'Quem ainda não usou não vai mais conseguir entrar por ele.', botao: 'Desativar', perigo: true }))) return
     const { error } = await supabase.rpc('desativar_convite', { p_convite: c.id })
     if (error) return setErro(mensagemDeErro(error))
     carregar()

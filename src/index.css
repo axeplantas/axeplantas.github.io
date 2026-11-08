@@ -2153,10 +2153,17 @@ button.indicador {
 
 .barras li {
   display: grid;
-  grid-template-columns: minmax(70px, 30%) 1fr auto;
+  grid-template-columns: 30% 1fr 3.4rem;
   align-items: center;
-  gap: 0.5rem;
+  column-gap: 0.5rem;
   font-size: 0.85rem;
+}
+
+.barras-detalhe {
+  grid-column: 2 / 4;
+  color: var(--sutil);
+  font-size: 0.75rem;
+  line-height: 1.2;
 }
 
 .barras-rotulo {
@@ -2182,6 +2189,8 @@ button.indicador {
 .barras-numero {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
+  font-weight: 600;
 }
 
 .tabela-rolavel {
@@ -2213,4 +2222,98 @@ button.indicador {
 
 .tabela tr:last-child td {
   border-bottom: none;
+}
+
+/* ---------- Perguntas dentro do app (no lugar de confirm/prompt) ---------- */
+
+.dialogo-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.45);
+  animation: aparecer 0.15s ease-out;
+}
+
+.dialogo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  padding: 1.2rem 16px calc(1rem + env(safe-area-inset-bottom));
+  border-radius: 18px 18px 0 0;
+  background: #fff;
+  box-shadow: 0 -4px 24px rgb(0 0 0 / 0.2);
+  animation: subir 0.2s ease-out;
+}
+
+.dialogo h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.dialogo p {
+  margin: 0;
+}
+
+.dialogo label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.dialogo-botoes {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+.dialogo-botoes > * {
+  flex: 1;
+  min-height: 48px;
+}
+
+.primario-perigo {
+  background: var(--perigo);
+}
+
+@media (min-width: 640px) {
+  .dialogo-fundo {
+    align-items: center;
+  }
+
+  .dialogo {
+    border-radius: 18px;
+  }
+}
+
+@keyframes subir {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialogo,
+  .dialogo-fundo {
+    animation: none;
+  }
+}
+
+/* Alvos de toque confortáveis para o polegar */
+.chip {
+  min-height: 40px;
+}
+
+.pequeno-botao {
+  min-height: 40px;
 }

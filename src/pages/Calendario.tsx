@@ -5,6 +5,7 @@ import { feriadosNacionais, type Feriado } from '../lib/feriados'
 import { ehEquipe, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { formatarDataCurta, ROTULO_EVENTO, type Evento, type TipoEvento } from '../lib/tipos'
+import { confirmar } from '../lib/dialogo'
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 const SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
@@ -98,7 +99,7 @@ export default function Calendario() {
   const casa = casaAtiva.terreiros?.nome ?? 'Casa'
 
   async function apagar(e: Evento) {
-    if (!confirm(`Apagar “${e.titulo}” do calendário?`)) return
+    if (!(await confirmar(`Apagar “${e.titulo}” do calendário?`, { botao: 'Apagar', perigo: true }))) return
     const { error } = await supabase.from('eventos').delete().eq('id', e.id)
     if (error) return avisar(mensagemDeErro(error), 'erro')
     avisar('Evento apagado.')

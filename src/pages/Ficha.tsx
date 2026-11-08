@@ -274,13 +274,11 @@ function Remedios({ lista, editando, aoMudar }: { lista: Medicamento[]; editando
       <strong>Remédios</strong>
       {lista.map((m, i) => (
         <div key={i} className="remedio">
-          <input value={m.nome} onChange={(e) => trocar(i, { nome: e.target.value })} placeholder="Nome do remédio" maxLength={80} />
-          <div className="linha">
-            <input value={m.dose ?? ''} onChange={(e) => trocar(i, { dose: e.target.value })} placeholder="Dose (ex.: 50 mg)" maxLength={40} className="cresce" />
-            <input value={m.horarios ?? ''} onChange={(e) => trocar(i, { horarios: e.target.value })} placeholder="Horários (ex.: 8h e 20h)" maxLength={60} className="cresce" />
-          </div>
-          <input value={m.para_que ?? ''} onChange={(e) => trocar(i, { para_que: e.target.value })} placeholder="Para que serve" maxLength={80} />
-          <input value={m.observacao ?? ''} onChange={(e) => trocar(i, { observacao: e.target.value })} placeholder="Observação (opcional)" maxLength={120} />
+          <input value={m.nome} onChange={(e) => trocar(i, { nome: e.target.value })} placeholder="Nome do remédio" maxLength={80} aria-label="Nome do remédio" />
+          <input value={m.dose ?? ''} onChange={(e) => trocar(i, { dose: e.target.value })} placeholder="Dose (ex.: 50 mg, 1 comprimido)" maxLength={40} aria-label="Dose" />
+          <input value={m.horarios ?? ''} onChange={(e) => trocar(i, { horarios: e.target.value })} placeholder="Horários (ex.: 8h e 20h)" maxLength={60} aria-label="Horários" />
+          <input value={m.para_que ?? ''} onChange={(e) => trocar(i, { para_que: e.target.value })} placeholder="Para que serve" maxLength={80} aria-label="Para que serve" />
+          <input value={m.observacao ?? ''} onChange={(e) => trocar(i, { observacao: e.target.value })} placeholder="Observação (opcional)" maxLength={120} aria-label="Observação" />
           <div className="linha">
             <label className="opcao cresce">
               <input type="checkbox" checked={Boolean(m.continuo)} onChange={(e) => trocar(i, { continuo: e.target.checked })} />

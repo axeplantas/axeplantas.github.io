@@ -3,24 +3,25 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ehGestorFinanceiro, ehValidador, ehZelador, useSessao } from '../lib/sessao'
 import { supabase } from '../lib/supabase'
 import Avisos from './Avisos'
+import Dialogos from './Dialogos'
 import InstalarApp from './InstalarApp'
 import PontosGuardados from './PontosGuardados'
 
 /** Quantas coisas esperam o validador/zelador: pedidos de entrada, folhas e pontos. */
 function usePendencias(): number {
-  const { perfil, casaAtiva } = useSessao()
+  const { perfil, casaAtiva, modulos } = useSessao()
   const local = useLocation()
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    const gestor = ehGestorFinanceiro(casaAtiva)
+    const gestor = modulos.financeiro && ehGestorFinanceiro(casaAtiva)
     if (!perfil?.terreiro_id || (!ehValidador(perfil) && !gestor)) return
     const terreiro = perfil.terreiro_id
     let ativo = true
 
     async function contar() {
       const consultas: PromiseLike<{ count: number | null }>[] = []
-      if (ehValidador(perfil)) {
+      if (modulos.mapa && ehValidador(perfil)) {
         consultas.push(
           supabase.from('folhas').select('id', { count: 'exact', head: true }).eq('status', 'pendente').eq('terreiro_id', terreiro),
           supabase.from('pontos').select('id', { count: 'exact', head: true }).eq('status', 'pendente')
@@ -48,7 +49,7 @@ function usePendencias(): number {
       ativo = false
       document.removeEventListener('visibilitychange', aoVoltar)
     }
-  }, [perfil, casaAtiva, local.pathname])
+  }, [perfil, casaAtiva, modulos, local.pathname])
 
   return total
 }
@@ -65,6 +66,7 @@ export default function Layout() {
       </main>
       <InstalarApp />
       <Avisos />
+      <Dialogos />
       <nav className="menu">
         {modulos.mapa && (
           <>

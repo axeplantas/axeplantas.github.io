@@ -5,6 +5,7 @@ import { hoje, ROTULO_SITUACAO, seAplica, valorDe, type Pessoa, type Situacao } 
 import { prepararFoto } from '../lib/imagem'
 import { ehGestorFinanceiro, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
+import { confirmar, copiar as copiarTexto, pedirTexto } from '../lib/dialogo'
 import {
   formatarDataCurta, formatarReais,
   type Cobranca, type FinanceiroCasa, type MembroDaCasa, type Pagamento,
@@ -208,12 +209,7 @@ function Minhas({ eu, terreiro, config, cobrancas, pagamentos, alvos, gestor, ao
 
 function InstrucoesPagamento({ texto }: { texto: string }) {
   async function copiar() {
-    try {
-      await navigator.clipboard.writeText(texto)
-      avisar('Copiado! Cole no app do banco.')
-    } catch {
-      prompt('Copie:', texto)
-    }
+    if (await copiarTexto(texto)) avisar('Copiado! Cole no app do banco.')
   }
   return (
     <div className="cartao instrucoes-pagamento">
@@ -317,8 +313,10 @@ function Conferir({ pendentes, cobrancas, membros, aoMudar }: {
     const nome = nomeDe(membros, p.perfil_id)
     let motivo: string | null = null
     if (status === 'recusado') {
-      motivo = prompt(`Por que recusar o comprovante de ${nome}? (a pessoa vai ver este motivo)`)
-      if (!motivo?.trim()) return
+      motivo = await pedirTexto(`Recusar o comprovante de ${nome}?`, {
+        texto: 'Diga o motivo: a pessoa vai ver e poderá enviar de novo.', campo: 'Motivo', botao: 'Recusar comprovante',
+      })
+      if (!motivo) return
     }
     setOcupado(p.id)
     const ok = await conferir(p.cobranca_id, p.perfil_id, status, motivo,
@@ -388,19 +386,14 @@ function QuemPagou({ config, cobrancas, pagamentos, alvos, membros, aoMudar }: {
 
   async function copiarPendentes() {
     const texto = `${c?.titulo} — falta pagar:\n${faltam.map((l) => `• ${l.m.perfis?.apelido} (${formatarReais(l.valor)})`).join('\n')}`
-    try {
-      await navigator.clipboard.writeText(texto)
-      avisar('Lista copiada! Cole no WhatsApp.')
-    } catch {
-      prompt('Copie:', texto)
-    }
+    if (await copiarTexto(texto)) avisar('Lista copiada! Cole no WhatsApp.')
   }
 
   async function marcar(perfilId: string, status: 'confirmado' | 'isento', nome: string) {
     const pergunta = status === 'confirmado'
       ? `Registrar que ${nome} pagou (em dinheiro ou sem comprovante)?`
       : `Isentar ${nome} desta cobrança?`
-    if (!confirm(pergunta)) return
+    if (!(await confirmar(pergunta, { botao: status === 'confirmado' ? 'Registrar pagamento' : 'Isentar' }))) return
     if (await conferir(c!.id, perfilId, status, null, status === 'confirmado' ? 'Pagamento registrado.' : 'Isenção registrada.')) {
       await aoMudar()
     }
@@ -481,7 +474,7 @@ function Contribuicoes({ terreiro, cobrancas, membros, aoMudar }: {
   }
 
   async function apagar(c: Cobranca) {
-    if (!confirm(`Apagar “${c.titulo}”? Os pagamentos já informados também somem.`)) return
+    if (!(await confirmar(`Apagar “${c.titulo}”?`, { texto: 'Os pagamentos já informados também somem.', botao: 'Apagar', perigo: true }))) return
     const { error } = await supabase.rpc('apagar_cobranca', { p_cobranca: c.id })
     if (error) return avisar(mensagemDeErro(error), 'erro')
     avisar('Contribuição apagada.')

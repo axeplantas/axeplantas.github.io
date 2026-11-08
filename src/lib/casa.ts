@@ -45,10 +45,21 @@ export function baixarPlanilha(nome: string, linhas: (string | number | null | u
   const texto = linhas
     .map((l) => l.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(';'))
     .join('\r\n')
-  const url = URL.createObjectURL(new Blob(['﻿' + texto], { type: 'text/csv;charset=utf-8' }))
+  const url = URL.createObjectURL(new Blob(['\uFEFF' + texto], { type: 'text/csv;charset=utf-8' }))
   const a = document.createElement('a')
   a.href = url
   a.download = `${nome}.csv`
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+const INVARIAVEIS = new Set(['kg', 'g', 'ml', 'l'])
+
+/** "3" + "galho" → "3 galhos"; "1" + "maço" → "1 maço"; "2,5" + "kg" → "2,5 kg". */
+export function comUnidade(quantidade: number, unidade: string | null | undefined): string {
+  const n = quantidade.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+  if (!unidade) return n
+  if (quantidade <= 1 || INVARIAVEIS.has(unidade.toLowerCase())) return `${n} ${unidade}`
+  const plural = unidade.endsWith('ão') ? `${unidade.slice(0, -2)}ões` : /[aeiouáéíóúâêô]$/i.test(unidade) ? `${unidade}s` : `${unidade}es`
+  return `${n} ${plural}`
 }

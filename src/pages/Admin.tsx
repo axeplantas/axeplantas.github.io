@@ -5,6 +5,7 @@ import Convites from '../components/Convites'
 import { useSessao } from '../lib/sessao'
 import { linkDoConvite, mensagemDeErro, supabase } from '../lib/supabase'
 import { ROTULO_PAPEL, type MembroDaCasa, type Papel, type Terreiro } from '../lib/tipos'
+import { confirmar } from '../lib/dialogo'
 
 const NACOES = ['Candomblé de Ketu', 'Candomblé de Angola', 'Candomblé Jeje', 'Umbanda', 'Umbanda / Jurema / Quimbanda', 'Jurema', 'Quimbanda']
 
@@ -88,7 +89,7 @@ export default function Admin() {
                 Aprovar
               </button>
               <button className="link perigo"
-                onClick={() => confirm(`Recusar o pedido de ${m.perfis?.apelido} para ${nomeTerreiro(m.terreiro_id)}?`) &&
+                onClick={async () => (await confirmar(`Recusar o pedido de ${m.perfis?.apelido} para ${nomeTerreiro(m.terreiro_id)}?`, { botao: 'Recusar', perigo: true })) &&
                   executar(supabase.rpc('remover_da_casa', { p_usuario: m.perfil_id, p_terreiro: m.terreiro_id }))}>
                 Recusar
               </button>

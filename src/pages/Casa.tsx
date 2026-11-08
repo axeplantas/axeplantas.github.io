@@ -48,9 +48,10 @@ export default function Casa() {
       supabase.rpc('abrir_ficha', { p_perfil: perfil.id, p_terreiro: terreiro }).then(({ data, error }) => setFichaVazia(!error && !data))
     }
     if (ehValidador(perfil)) {
+      const nada = Promise.resolve({ count: 0 })
       Promise.all([
-        supabase.from('folhas').select('id', { count: 'exact', head: true }).eq('status', 'pendente').eq('terreiro_id', terreiro),
-        supabase.from('pontos').select('id', { count: 'exact', head: true }).eq('status', 'pendente').eq('terreiro_id', terreiro).neq('visibilidade', 'privado'),
+        modulos.mapa ? supabase.from('folhas').select('id', { count: 'exact', head: true }).eq('status', 'pendente').eq('terreiro_id', terreiro) : nada,
+        modulos.mapa ? supabase.from('pontos').select('id', { count: 'exact', head: true }).eq('status', 'pendente').eq('terreiro_id', terreiro).neq('visibilidade', 'privado') : nada,
         ehZelador(casaAtiva)
           ? supabase.from('membros').select('perfil_id', { count: 'exact', head: true }).eq('terreiro_id', terreiro).eq('aprovado', false)
           : Promise.resolve({ count: 0 }),

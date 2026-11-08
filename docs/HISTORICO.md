@@ -4,6 +4,13 @@ Entradas mais recentes no topo. Cada versão diz **o que mudou** e **por quê**.
 
 ---
 
+## v0.15 — 08/11/2026 — Revisão geral de uso e dos relatórios
+- **Confirmações dentro do app:** as 22 perguntas que usavam a janelinha do navegador ("Tem certeza?", "Por que recusar?", "Copie o link") viraram uma folha que sobe do rodapé, com botões grandes e o botão de apagar em vermelho. No app instalado no iPhone essas janelinhas às vezes nem apareciam.
+- **Relatórios mais exatos:** todas as barras usam a mesma régua (antes, o texto ao lado encurtava algumas barras); quem confirmou uma escala e faltou não conta mais como "participou"; o mês que ainda não venceu mostra "vence dia X" em vez de parecer atraso; comprovantes aguardando conferência aparecem nas contribuições.
+- **Relatórios prontos para crescer:** as consultas olham só o último ano, para não ficarem pesadas (nem quebrarem) com o passar dos anos.
+- Unidades no plural ("3 galhos", "6 unidades"); campos de remédio empilhados no celular; botões de escolha maiores para o polegar.
+- O selo de pendências e o cartão de Gestão não contam mais folhas e pontos quando o mapa está desligado.
+
 ## v0.14 — 08/11/2026 — Ficha dos filhos, escalas, senhas, relatórios e app sob medida
 **Origem:** conversas com pais e mães de santo de vários terreiros.
 - **Ficha do filho** (uma por casa): dados pessoais, saúde (alergias, problemas de saúde, remédios com dose, horário, para que serve e se é de uso contínuo) e espiritual (orixás, nome de santo, iniciação, guias, mestres, entidades). Só o próprio filho, o zelador e quem ele autorizar veem; irmãos nunca. Saúde só o filho edita; a parte espiritual o zelador também. Toda leitura por outra pessoa fica registrada. Dá para copiar a ficha de outra casa.

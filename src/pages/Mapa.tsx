@@ -9,6 +9,7 @@ import { linkComoChegar } from '../lib/distancia'
 import { useSessao } from '../lib/sessao'
 import { BUCKET_FOTOS, mensagemDeErro, modoDemo, supabase } from '../lib/supabase'
 import { fotosDoPonto, ROTULO_VISIBILIDADE, type Ponto } from '../lib/tipos'
+import { confirmar } from '../lib/dialogo'
 
 const CENTRO_BRASIL: LatLngExpression = [-14.235, -51.925]
 
@@ -99,7 +100,7 @@ export default function Mapa() {
   }, [carregado, filtrando, visiveis, eu, semGps, pontos])
 
   async function apagar(ponto: Ponto) {
-    if (!confirm(`Apagar este ponto de ${ponto.folhas?.nome_popular ?? 'folha'} do mapa? Isso não pode ser desfeito.`)) return
+    if (!(await confirmar(`Apagar este ponto de ${ponto.folhas?.nome_popular ?? 'folha'}?`, { texto: 'Ele sai do mapa e não dá para desfazer.', botao: 'Apagar', perigo: true }))) return
     const { error } = await supabase.from('pontos').delete().eq('id', ponto.id)
     if (error) return avisar(mensagemDeErro(error), 'erro')
     const fotos = fotosDoPonto(ponto)

@@ -1,16 +1,14 @@
 import { useState } from 'react'
+import { copiar as copiarTexto } from '../lib/dialogo'
 
 /** Mostra um link com botões para copiar e enviar pelo WhatsApp. */
 export default function CompartilharLink({ link, mensagem }: { link: string; mensagem: string }) {
   const [copiado, setCopiado] = useState(false)
 
   async function copiar() {
-    try {
-      await navigator.clipboard.writeText(link)
+    if (await copiarTexto(link, 'Copie o link')) {
       setCopiado(true)
       setTimeout(() => setCopiado(false), 2000)
-    } catch {
-      prompt('Copie o link:', link)
     }
   }
 

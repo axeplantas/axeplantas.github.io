@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { avisar } from '../lib/avisos'
 import { descartarPonto, enviarGuardados, pontosGuardados, type PontoGuardado } from '../lib/fila'
 import { useSessao } from '../lib/sessao'
+import { confirmar } from '../lib/dialogo'
 
 /** Mostra os pontos guardados no celular e envia sozinho quando houver internet. */
 export default function PontosGuardados() {
@@ -75,7 +76,7 @@ export default function PontosGuardados() {
                 </span>
               </span>
               <button className="link perigo"
-                onClick={() => confirm(`Descartar o ponto de ${p.folhaNome}? Ele não será enviado.`) && descartarPonto(p.id)}>
+                onClick={async () => (await confirmar(`Descartar o ponto de ${p.folhaNome}?`, { texto: 'Ele não será enviado.', botao: 'Descartar', perigo: true })) && descartarPonto(p.id)}>
                 Descartar
               </button>
             </div>

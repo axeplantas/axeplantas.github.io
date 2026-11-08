@@ -73,7 +73,8 @@ function item(id: string, folhaId: string, quantidade: string, colhida = false):
 queueMicrotask(() => {
   banco.membros = banco.perfis.map((p) => ({
     perfil_id: p.id, terreiro_id: p.terreiro_id, papel: p.papel, aprovado: p.aprovado, contador: false,
-    isento: p.papel === 'zelador', mensalidade_valor: null, aprovado_em: p.created_at, created_at: p.created_at,
+    isento: p.papel === 'zelador', mensalidade_valor: null, permissoes: [],
+    aprovado_em: p.aprovado ? new Date(Date.now() - 200 * 86400000).toISOString() : null, created_at: p.created_at,
   }))
 })
 
@@ -291,6 +292,33 @@ Object.assign(banco, {
   ],
 })
 banco.obrigacoes[0].filho_id = 'demo-m1'
+banco.escala_pessoas.forEach((p) => { p.created_at ??= new Date(Date.now() - 12 * DIA).toISOString() })
+
+// Financeiro de exemplo: 4 meses de mensalidade, com quem paga em dia, quem atrasa e quem está devendo.
+{
+  const mes = (n: number) => {
+    const d = new Date()
+    d.setDate(1)
+    d.setMonth(d.getMonth() - n)
+    return d.toISOString().slice(0, 7)
+  }
+  banco.financeiro_casa.push({ terreiro_id: T1, cobra_mensalidade: true, valor_padrao: 50, dia_vencimento: 10,
+    instrucoes: 'Pix: (chave de exemplo)', inicio: `${mes(3)}-01`, lembrete_dias: [3, 0], lembrar_atrasados: true, atraso_intervalo: 7 })
+  ;[3, 2, 1, 0].forEach((n) => {
+    const id = `mens-${n}`
+    banco.cobrancas.push({ id, terreiro_id: T1, tipo: 'mensalidade', titulo: `Mensalidade ${mes(n)}`, descricao: null,
+      competencia: `${mes(n)}-01`, vencimento: `${mes(n)}-10`, valor: null, para_todos: true, created_at: new Date().toISOString() })
+    const pago = (perfil: string, dia: string) => banco.pagamentos.push({ id: crypto.randomUUID(), cobranca_id: id, terreiro_id: T1,
+      perfil_id: perfil, valor: 50, status: 'confirmado', comprovante: null, observacao: null, motivo: null,
+      informado_em: `${mes(n)}-${dia}T12:00:00Z`, conferido_em: `${mes(n)}-${dia}T13:00:00Z` })
+    pago('demo-m1', '05')                    // Ana: sempre em dia
+    if (n >= 2) pago('demo-m2', '25')        // Carlos: paga atrasado e parou de pagar
+  })
+  banco.cobrancas.push({ id: 'contrib-ere', terreiro_id: T1, tipo: 'contribuicao', titulo: 'Festa de Erê', descricao: null,
+    competencia: null, vencimento: iso(-5), valor: 70, para_todos: true, created_at: new Date().toISOString() })
+  banco.pagamentos.push({ id: crypto.randomUUID(), cobranca_id: 'contrib-ere', terreiro_id: T1, perfil_id: 'demo-m1', valor: 70,
+    status: 'informado', comprovante: null, observacao: null, motivo: null, informado_em: new Date().toISOString(), conferido_em: null })
+}
 banco.obrigacao_itens.push(
   { id: 'i6', obrigacao_id: 'o1', folha_id: null, nome: 'Galo carijó', categoria: 'animal', quantidade_total: 1, unidade: 'cabeça', quantidade: '1 cabeça', aberto: false, colhida: false, created_at: new Date().toISOString() },
   { id: 'i7', obrigacao_id: 'o1', folha_id: null, nome: 'Milho branco', categoria: 'semente', quantidade_total: 3, unidade: 'kg', quantidade: '3 kg', aberto: true, colhida: false, created_at: new Date().toISOString() },
@@ -351,7 +379,7 @@ function rpcNovas(nome: string, a: any): { data: any; error: any } | null {
       banco.escalas.push({ id, terreiro_id: a.p_terreiro, titulo: a.p_titulo, descricao: a.p_descricao || null, data: a.p_data, hora: a.p_hora,
         local: a.p_local || null, modo: a.p_modo, vagas: a.p_vagas, obrigacao_id: a.p_obrigacao, criado_por: EU, created_at: new Date().toISOString() })
       const pessoas = a.p_modo === 'todos' ? irmaos().map((i) => i.perfil_id) : a.p_modo === 'escolhidos' ? a.p_pessoas : []
-      pessoas.forEach((p: string) => banco.escala_pessoas.push({ escala_id: id, perfil_id: p, terreiro_id: a.p_terreiro, status: 'convocado', presenca: null, respondeu_em: null }))
+      pessoas.forEach((p: string) => banco.escala_pessoas.push({ escala_id: id, perfil_id: p, terreiro_id: a.p_terreiro, status: 'convocado', presenca: null, respondeu_em: null, created_at: new Date().toISOString() }))
       return ok(id)
     }
     case 'responder_escala': {
@@ -365,7 +393,7 @@ function rpcNovas(nome: string, a: any): { data: any; error: any } | null {
         const confirmados = banco.escala_pessoas.filter((x) => x.escala_id === e.id && x.status === 'confirmado').length
         if (confirmados >= e.vagas) return falha('As vagas já foram preenchidas')
         if (minha) minha.status = 'confirmado'
-        else banco.escala_pessoas.push({ escala_id: e.id, perfil_id: EU, terreiro_id: e.terreiro_id, status: 'confirmado', presenca: null, respondeu_em: new Date().toISOString() })
+        else banco.escala_pessoas.push({ escala_id: e.id, perfil_id: EU, terreiro_id: e.terreiro_id, status: 'confirmado', presenca: null, respondeu_em: new Date().toISOString(), created_at: new Date().toISOString() })
         return ok('confirmado')
       }
       if (!minha) return falha('Você não foi convocado(a) para esta escala')

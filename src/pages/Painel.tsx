@@ -7,6 +7,7 @@ import { linkComoChegar } from '../lib/distancia'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { fotosDoPonto, ROTULO_VISIBILIDADE, type Folha, type MembroDaCasa, type Ponto } from '../lib/tipos'
+import { confirmar } from '../lib/dialogo'
 
 export default function Painel() {
   const { perfil, casaAtiva } = useSessao()
@@ -84,7 +85,7 @@ export default function Painel() {
                   Aprovar
                 </button>
                 <button className="link perigo" disabled={ocupado === m.perfil_id}
-                  onClick={() => confirm(`Recusar o pedido de ${m.perfis?.apelido}?`) &&
+                  onClick={async () => (await confirmar(`Recusar o pedido de ${m.perfis?.apelido}?`, { botao: 'Recusar', perigo: true })) &&
                     executar(m.perfil_id, supabase.rpc('remover_da_casa', { p_usuario: m.perfil_id, p_terreiro: m.terreiro_id }), 'Pedido recusado.')}>
                   Recusar
                 </button>
@@ -112,7 +113,7 @@ export default function Painel() {
                   Validar
                 </button>
                 <button className="link perigo" disabled={ocupado === f.id}
-                  onClick={() => confirm(`Recusar a folha “${f.nome_popular}”? Ela some da lista de folhas.`) &&
+                  onClick={async () => (await confirmar(`Recusar a folha “${f.nome_popular}”?`, { texto: 'Ela some da lista de folhas.', botao: 'Recusar', perigo: true })) &&
                     executar(f.id, supabase.from('folhas').update({ status: 'recusada' }).eq('id', f.id), 'Folha recusada.')}>
                   Recusar
                 </button>
@@ -139,7 +140,7 @@ export default function Painel() {
                   Validar
                 </button>
                 <button className="link perigo" disabled={ocupado === p.id}
-                  onClick={() => confirm('Recusar este ponto? Ele sai do mapa.') &&
+                  onClick={async () => (await confirmar('Recusar este ponto?', { texto: 'Ele sai do mapa.', botao: 'Recusar', perigo: true })) &&
                     executar(p.id, supabase.from('pontos').update({ status: 'recusado' }).eq('id', p.id), 'Ponto recusado.')}>
                   Recusar
                 </button>

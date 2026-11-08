@@ -5,6 +5,7 @@ import { diaMes, hojeIso, nomeDe, useIrmaos } from '../lib/casa'
 import { ehEquipe, temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import type { Escala, Irmao, ModoEscala, PessoaEscala } from '../lib/tipos'
+import { confirmar } from '../lib/dialogo'
 
 const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
@@ -113,7 +114,7 @@ function CartaoEscala({ escala, pessoas, irmaos, eu, organiza, aoMudar, passada 
   }
 
   async function apagar() {
-    if (!confirm(`Apagar a escala "${escala.titulo}"?`)) return
+    if (!(await confirmar(`Apagar a escala “${escala.titulo}”?`, { texto: 'Quem estava nela deixa de ver.', botao: 'Apagar', perigo: true }))) return
     const { error } = await supabase.rpc('apagar_escala', { p_escala: escala.id })
     if (error) return avisar(mensagemDeErro(error), 'erro')
     avisar('Escala apagada.')

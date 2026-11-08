@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { baixarPlanilha, buscarTudo, diaMes, hojeIso, nomeDe, useIrmaos } from '../lib/casa'
+import { baixarPlanilha, buscarTudo, comUnidade, diaMes, hojeIso, nomeDe, useIrmaos } from '../lib/casa'
 import { seAplica, valorDe } from '../lib/financeiro'
 import { ehZelador, temPermissao, useSessao } from '../lib/sessao'
 import { supabase } from '../lib/supabase'
@@ -52,7 +52,7 @@ export default function Relatorios() {
         supabase.from('cobrancas').select('*').eq('terreiro_id', terreiro).gte('vencimento', umAno),
         supabase.from('cobranca_alvos').select('cobranca_id, perfil_id'),
         supabase.from('escalas').select('*').eq('terreiro_id', terreiro).gte('data', umAno),
-        supabase.from('obrigacoes').select('*').eq('terreiro_id', terreiro).eq('visibilidade', 'terreiro'),
+        supabase.from('obrigacoes').select('*').eq('terreiro_id', terreiro).eq('visibilidade', 'terreiro').gte('created_at', umAno),
         supabase.rpc('uso_do_app', { p_terreiro: terreiro }),
         supabase.from('materiais').select('id, nome, quantidade, minimo, unidade').eq('terreiro_id', terreiro),
         modulos.fichas ? supabase.rpc('listar_fichas', { p_terreiro: terreiro }) : Promise.resolve({ data: null }),
@@ -61,10 +61,12 @@ export default function Relatorios() {
       const obrigacoes = (ob.data ?? []) as Obrigacao[]
       const idsOb = obrigacoes.map((o) => o.id)
       const [pagamentos, pessoasEscala, itens, contribuicoes, pontos, saidas] = await Promise.all([
-        buscarTudo<Pagamento>(() => supabase.from('pagamentos').select('*').eq('terreiro_id', terreiro)),
-        buscarTudo<PessoaEscala>(() => supabase.from('escala_pessoas').select('*').eq('terreiro_id', terreiro)),
+        cob.data?.length
+          ? buscarTudo<Pagamento>(() => supabase.from('pagamentos').select('*').eq('terreiro_id', terreiro).in('cobranca_id', (cob.data as Cobranca[]).map((c) => c.id)))
+          : Promise.resolve([]),
+        buscarTudo<PessoaEscala>(() => supabase.from('escala_pessoas').select('*').eq('terreiro_id', terreiro).gte('created_at', umAno)),
         idsOb.length ? buscarTudo<ItemObrigacao>(() => supabase.from('obrigacao_itens').select('*, folhas(nome_popular)').in('obrigacao_id', idsOb)) : Promise.resolve([]),
-        buscarTudo<Contribuicao>(() => supabase.from('item_contribuicoes').select('*').eq('terreiro_id', terreiro)),
+        buscarTudo<Contribuicao>(() => supabase.from('item_contribuicoes').select('*').eq('terreiro_id', terreiro).gte('created_at', umAno)),
         buscarTudo<{ criado_por: string | null; status: string; visibilidade: string }>(() =>
           supabase.from('pontos').select('criado_por, status, visibilidade').eq('terreiro_id', terreiro)),
         buscarTudo<{ material_id: string; quantidade: number }>(() =>
@@ -178,7 +180,8 @@ function Barras({ linhas, formato = (v) => String(v), maximo }: {
         <li key={l.rotulo} title={`${l.rotulo}: ${formato(l.valor)}${l.detalhe ? ` · ${l.detalhe}` : ''}`}>
           <span className="barras-rotulo">{l.rotulo}</span>
           <span className="barras-trilho"><span className="barras-valor" style={{ width: `${(l.valor / topo) * 100}%` }} /></span>
-          <span className="barras-numero">{formato(l.valor)}{l.detalhe && <span className="sutil"> {l.detalhe}</span>}</span>
+          <span className="barras-numero">{formato(l.valor)}</span>
+          {l.detalhe && <span className="barras-detalhe">{l.detalhe}</span>}
         </li>
       ))}
     </ul>
@@ -246,8 +249,10 @@ function RelFinanceiro({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
       const p = pagamento(c.id, m.perfil_id)
       return s + (p?.status === 'confirmado' ? (p.valor ?? valorDe(c, m, d.config)) : 0)
     }, 0)
+    const aguardando = aplica.filter((m) => pagamento(c.id, m.perfil_id)?.status === 'informado').length
     const [a, mes] = (c.competencia ?? c.vencimento).split('-')
-    return { rotulo: `${MESES[Number(mes) - 1]}/${a.slice(2)}`, pagos: ok.length, total: aplica.length, recebido }
+    return { rotulo: `${MESES[Number(mes) - 1]}/${a.slice(2)}`, pagos: ok.length, total: aplica.length, recebido, aguardando,
+      aVencer: c.vencimento >= hoje, vencimento: c.vencimento }
   })
 
   const planilha = () => baixarPlanilha('financeiro-por-filho', [
@@ -266,7 +271,10 @@ function RelFinanceiro({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
       </div>
 
       <h3>Mensalidade: quantos pagaram, mês a mês</h3>
-      <Barras linhas={meses.map((m) => ({ rotulo: m.rotulo, valor: pct(m.pagos, m.total), detalhe: `${m.pagos}/${m.total} · ${formatarReais(m.recebido)}` }))}
+      <Barras linhas={meses.map((m) => ({
+        rotulo: m.rotulo, valor: pct(m.pagos, m.total),
+        detalhe: `${m.pagos}/${m.total} · ${formatarReais(m.recebido)}${m.aguardando ? ` · ${m.aguardando} p/ conferir` : ''}${m.aVencer ? ` · vence ${diaMes(m.vencimento)}` : ''}`,
+      }))}
         formato={(v) => `${v}%`} maximo={100} />
 
       <h3>Quem está em atraso</h3>
@@ -288,7 +296,9 @@ function RelFinanceiro({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
             linhas={contribuicoes.slice(0, 12).map((c) => {
               const aplica = aprovados.filter((m) => seAplica(c, m, d.config, d.alvos))
               const pagos = aplica.filter((m) => pagamento(c.id, m.perfil_id)?.status === 'confirmado')
-              return [c.titulo, diaMes(c.vencimento), `${pagos.length}/${aplica.length}`, formatarReais(pagos.length * (c.valor ?? 0))]
+              const conferir = aplica.filter((m) => pagamento(c.id, m.perfil_id)?.status === 'informado').length
+              return [c.titulo, diaMes(c.vencimento), `${pagos.length}/${aplica.length}${conferir ? ` (+${conferir} p/ conferir)` : ''}`,
+                formatarReais(pagos.length * (c.valor ?? 0))]
             })} />
         </>
       )}
@@ -313,9 +323,11 @@ function RelEscalas({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
       recusou: minhas.filter((p) => p.status === 'recusou').length,
       veio: minhas.filter((p) => p.presenca === 'presente').length,
       faltou: minhas.filter((p) => p.presenca === 'faltou').length,
+      // confirmou, mas ninguém marcou a presença: conta como participação provável
+      semMarca: minhas.filter((p) => p.status === 'confirmado' && !p.presenca).length,
     }
   })
-  const nunca = porFilho.filter((f) => f.veio === 0 && f.confirmou === 0)
+  const nunca = porFilho.filter((f) => f.veio === 0 && f.semMarca === 0)
   const faltosos = porFilho.filter((f) => f.faltou > 0).sort((a, b) => b.faltou - a.faltou)
 
   const planilha = () => baixarPlanilha('participacao-em-escalas', [
@@ -327,13 +339,19 @@ function RelEscalas({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
     <Secao id="escalas" titulo="🧹 Participação nas escalas" planilha={planilha}>
       <div className="indicadores">
         <Numero valor={passadas.size} rotulo="escalas no último ano" />
-        <Numero valor={porFilho.filter((f) => f.veio > 0).length} rotulo="filhos já participaram" tom="bom" />
+        <Numero valor={porFilho.filter((f) => f.veio + f.semMarca > 0).length} rotulo="filhos já participaram" tom="bom" />
         <Numero valor={nunca.length} rotulo="nunca participaram" tom={nunca.length ? 'alerta' : undefined} />
         <Numero valor={faltosos.reduce((s, f) => s + f.faltou, 0)} rotulo="faltas marcadas" tom={faltosos.length ? 'ruim' : undefined} />
       </div>
       <h3>Quem mais participa (presenças)</h3>
-      <Barras linhas={porFilho.filter((f) => f.veio + f.confirmou > 0).sort((a, b) => b.veio - a.veio || b.confirmou - a.confirmou).slice(0, 15)
-        .map((f) => ({ rotulo: nomeDe(irmaos, f.id), valor: f.veio || f.confirmou, detalhe: f.veio ? `veio ${f.veio}x` : `confirmou ${f.confirmou}x` }))} />
+      <Barras linhas={porFilho.filter((f) => f.veio + f.semMarca > 0).sort((a, b) => (b.veio + b.semMarca) - (a.veio + a.semMarca)).slice(0, 15)
+        .map((f) => ({
+          rotulo: nomeDe(irmaos, f.id), valor: f.veio + f.semMarca,
+          detalhe: [f.veio && `veio ${f.veio}x`, f.semMarca && `${f.semMarca} sem presença marcada`, f.faltou && `faltou ${f.faltou}x`].filter(Boolean).join(' · '),
+        }))} />
+      {porFilho.some((f) => f.semMarca > 0) && (
+        <p className="sutil">Dica: marque “Veio” ou “Faltou” depois de cada escala (em Escalas › escala que já passou) para este relatório ficar exato.</p>
+      )}
       {faltosos.length > 0 && (
         <>
           <h3>Faltas</h3>
@@ -403,7 +421,7 @@ function RelFuncoes({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
             linhas={faltando.slice(0, 20).map(({ i, falta }) => [
               <Link key={i.id} to={`/obrigacoes/${i.obrigacao_id}`}>{obPorId.get(i.obrigacao_id)?.nome}</Link>,
               i.nome ?? i.folhas?.nome_popular ?? 'Item',
-              i.quantidade_total ? `${falta} ${i.unidade ?? ''}` : 'ninguém pegou',
+              i.quantidade_total ? comUnidade(falta, i.unidade) : 'ninguém pegou',
             ])} />
         </>
       )}
@@ -578,7 +596,7 @@ function RelMateriais({ d }: { d: Dados }) {
       </div>
       {acabando.length > 0 && (
         <Tabela cabecalho={['Material', 'Tem', 'Mínimo']}
-          linhas={acabando.map((m) => [m.nome, `${m.quantidade} ${m.unidade}`, `${m.minimo} ${m.unidade}`])} />
+          linhas={acabando.map((m) => [m.nome, comUnidade(Number(m.quantidade), m.unidade), comUnidade(Number(m.minimo), m.unidade)])} />
       )}
       <h3>Mais usados (últimos 90 dias)</h3>
       <Barras linhas={maisUsados.map(([id, n]) => {

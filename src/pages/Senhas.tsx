@@ -84,7 +84,7 @@ export default function Senhas() {
               <b className="senha-numero">{doisDigitos(s.numero)}</b>
               <span className="cresce">{s.nome}</span>
               <span className="sutil">{ROTULO[s.status]}</span>
-              {s.status !== 'aguardando' && (
+              {s.status !== 'aguardando' && s.id !== atual?.id && (
                 <button className="link" onClick={async () => {
                   await supabase.rpc('marcar_senha', { p_senha: s.id, p_status: 'chamada' })
                   carregar()

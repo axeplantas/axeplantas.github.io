@@ -4,6 +4,7 @@ import { avisar } from '../lib/avisos'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { semAcento } from '../lib/texto'
+import { confirmar } from '../lib/dialogo'
 import {
   ROTULO_CATEGORIA, UNIDADES,
   type CategoriaMaterial, type Material, type MembroDaCasa, type Movimento,
@@ -143,7 +144,7 @@ function DetalheMaterial({ material, podeEditar, aoMudar }: { material: Material
     const valor = Number(qtd)
     if (!(valor >= 0) || qtd === '') return avisar('Informe a quantidade.', 'erro')
     if (tipo === 'saida' && valor > Number(material.quantidade)
-        && !confirm(`Só há ${quantidade(material.quantidade)} ${material.unidade}. Registrar a saída mesmo assim (fica zerado)?`)) return
+        && !(await confirmar(`Só há ${quantidade(material.quantidade)} ${material.unidade}.`, { texto: 'Registrar a saída mesmo assim? O estoque fica zerado.', botao: 'Registrar saída' }))) return
     const { error } = await supabase.from('movimentos_material').insert({
       material_id: material.id, tipo, quantidade: valor, motivo: motivo.trim() || null, terreiro_id: material.terreiro_id,
     })
@@ -156,7 +157,7 @@ function DetalheMaterial({ material, podeEditar, aoMudar }: { material: Material
   }
 
   async function apagar() {
-    if (!confirm(`Apagar “${material.nome}” e todo o histórico dele?`)) return
+    if (!(await confirmar(`Apagar “${material.nome}”?`, { texto: 'O histórico de entradas e saídas também é apagado.', botao: 'Apagar', perigo: true }))) return
     const { error } = await supabase.from('materiais').delete().eq('id', material.id)
     if (error) return avisar(mensagemDeErro(error), 'erro')
     avisar('Material apagado.')

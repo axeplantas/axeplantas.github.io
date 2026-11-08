@@ -5,6 +5,7 @@ import { avisar } from '../lib/avisos'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { formatarReais, ROTULO_PAPEL, ROTULO_PERMISSAO, type MembroDaCasa, type Papel, type Permissao } from '../lib/tipos'
+import { confirmar } from '../lib/dialogo'
 
 /** Zelador: quem é da casa, papéis, contador e mensalidade de cada filho. */
 export default function Membros() {
@@ -60,7 +61,7 @@ export default function Membros() {
 
   async function remover(m: MembroDaCasa) {
     const nome = m.perfis?.apelido ?? 'esta pessoa'
-    if (!confirm(`Tirar ${nome} desta casa? A conta continua existindo (para outras casas), mas sai daqui.`)) return
+    if (!(await confirmar(`Tirar ${nome} desta casa?`, { texto: 'A conta continua existindo (para outras casas), mas sai daqui.', botao: 'Tirar da casa', perigo: true }))) return
     const { error } = await supabase.rpc('remover_da_casa', { p_usuario: m.perfil_id, p_terreiro: terreiro })
     if (error) return avisar(mensagemDeErro(error), 'erro')
     avisar(`${nome} saiu da casa.`)
@@ -150,8 +151,8 @@ function EditarMembro({ membro, ehEu, padrao, aoSalvar, aoRemover, aoMudarPermis
   const [valor, setValor] = useState(membro.mensalidade_valor?.toString() ?? '')
   const nome = membro.perfis?.apelido ?? 'Filho'
 
-  function mudarPapel(papel: Papel) {
-    if (papel === 'zelador' && !confirm(`Tornar ${nome} zelador(a)? Zeladores aprovam e removem filhos e veem as finanças.`)) return
+  async function mudarPapel(papel: Papel) {
+    if (papel === 'zelador' && !(await confirmar(`Tornar ${nome} zelador(a)?`, { texto: 'Zeladores aprovam e removem filhos, veem as finanças, as fichas e o registro de atividades.', botao: 'Tornar zelador(a)' }))) return
     aoSalvar(membro, { papel }, `${nome} agora é ${ROTULO_PAPEL[papel].toLowerCase()}.`)
   }
 

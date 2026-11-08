@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import SeletorFolha from '../components/SeletorFolha'
 import { avisar } from '../lib/avisos'
-import { nomeDe, useIrmaos } from '../lib/casa'
+import { comUnidade, nomeDe, useIrmaos } from '../lib/casa'
 import { distanciaEmMetros, formatarDistancia, linkComoChegar } from '../lib/distancia'
 import { ehEquipe, ehValidador, temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
@@ -11,6 +11,7 @@ import {
   type CategoriaItem, type Contribuicao, type Folha, type Irmao, type ItemObrigacao, type Obrigacao, type Ponto,
 } from '../lib/tipos'
 import { formatarData } from './Obrigacoes'
+import { confirmar } from '../lib/dialogo'
 
 type PontoSimples = Pick<Ponto, 'id' | 'folha_id' | 'lat' | 'lng'>
 type FolhaSimples = Pick<Folha, 'id' | 'nome_popular' | 'status' | 'nome_cientifico' | 'outros_nomes'>
@@ -101,14 +102,14 @@ export default function ObrigacaoDetalhe() {
   }
 
   async function remover(item: ItemObrigacao) {
-    if (!confirm(`Tirar "${nomeDoItem(item)}" da lista?`)) return
+    if (!(await confirmar(`Tirar “${nomeDoItem(item)}” da lista?`, { texto: 'Quem ia levar este item também sai da lista.', botao: 'Tirar', perigo: true }))) return
     const { error } = await supabase.from('obrigacao_itens').delete().eq('id', item.id)
     if (error) return setErro(mensagemDeErro(error))
     await carregarItens()
   }
 
   async function apagarObrigacao() {
-    if (!confirm(`Apagar "${obrigacao!.nome}"?`)) return
+    if (!(await confirmar(`Apagar “${obrigacao!.nome}”?`, { texto: 'Os itens e quem ia levar cada um também são apagados.', botao: 'Apagar', perigo: true }))) return
     const { error } = await supabase.from('obrigacoes').delete().eq('id', obrigacao!.id)
     if (error) return setErro(mensagemDeErro(error))
     navegar('/obrigacoes', { replace: true })
@@ -139,7 +140,7 @@ export default function ObrigacaoDetalhe() {
             const item = itens.find((i) => i.id === c.item_id)
             return (
               <div key={c.id} className="sutil">
-                {numero(c.quantidade)} {item?.unidade ?? ''} de {item ? nomeDoItem(item) : 'item'}
+                {comUnidade(Number(c.quantidade), item?.unidade)} de {item ? nomeDoItem(item) : 'item'}
                 {c.status === 'entregue' ? ' · ✅ entregue' : ''}
               </div>
             )
@@ -198,7 +199,7 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
   const minha = contribuicoes.find((c) => c.perfil_id === eu)
   const categoria = (item.categoria ?? 'folha') as CategoriaItem
   const icone = ROTULO_CATEGORIA_ITEM[categoria]?.split(' ')[0] ?? '📦'
-  const quantidadeTexto = total !== null ? `${numero(total)} ${item.unidade ?? ''}` : item.quantidade
+  const quantidadeTexto = total !== null ? comUnidade(total, item.unidade) : item.quantidade
 
   async function rpc(nome: string, args: Record<string, unknown>, ok: string) {
     const { error } = await supabase.rpc(nome, args)
@@ -236,7 +237,7 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
             <div key={c.id} className="contribuicao">
               <span className="cresce">
                 {c.status === 'entregue' ? '✅' : '🙋'} <strong>{c.perfil_id === eu ? 'Você' : nomeDe(irmaos, c.perfil_id)}</strong>{' '}
-                leva {numero(c.quantidade)} {item.unidade ?? ''}
+                leva {comUnidade(Number(c.quantidade), item.unidade)}
                 {c.atribuido_por && <span className="sutil"> (pedido do zelador)</span>}
               </span>
               {(c.perfil_id === eu || organiza) && (
@@ -250,7 +251,7 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
               )}
             </div>
           ))}
-          {falta !== null && <div className="sutil">{falta > 0 ? `Faltam ${numero(falta)} ${item.unidade ?? ''}` : 'Quantidade completa ✅'}</div>}
+          {falta !== null && <div className="sutil">{falta > 0 ? `Faltam ${comUnidade(falta, item.unidade)}` : 'Quantidade completa ✅'}</div>}
         </div>
       )}
 
@@ -335,7 +336,7 @@ function AdicionarItem({ obrigacaoId, folhas, aoAdicionar }: {
       categoria,
       quantidade_total: qtd,
       unidade: qtd ? unidade : null,
-      quantidade: qtd ? `${quantidade} ${unidade}` : null,
+      quantidade: qtd ? comUnidade(qtd, unidade) : null,
       aberto,
     })
     if (error) return setErro(mensagemDeErro(error))
