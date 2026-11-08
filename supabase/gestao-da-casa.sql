@@ -240,7 +240,7 @@ begin
   if new.tipo = 'contribuicao' and new.para_todos then
     insert into public.notificacoes (perfil_id, titulo, corpo, url)
     select perfil_id, 'Nova contribuição: ' || new.titulo,
-           'Valor R$ ' || to_char(new.valor, 'FM999G990D00') || ', até ' || to_char(new.vencimento, 'DD/MM') || '.',
+           'Valor ' || public.texto_reais(new.valor) || ', até ' || to_char(new.vencimento, 'DD/MM') || '.',
            '#/casa/financeiro'
     from public.membros
     where terreiro_id = new.terreiro_id and aprovado and perfil_id is distinct from new.criado_por;
@@ -261,7 +261,7 @@ begin
   if new.perfil_id is distinct from v.criado_por then
     insert into public.notificacoes (perfil_id, titulo, corpo, url)
     values (new.perfil_id, 'Nova contribuição: ' || v.titulo,
-            'Valor R$ ' || to_char(v.valor, 'FM999G990D00') || ', até ' || to_char(v.vencimento, 'DD/MM') || '.',
+            'Valor ' || public.texto_reais(v.valor) || ', até ' || to_char(v.vencimento, 'DD/MM') || '.',
             '#/casa/financeiro');
   end if;
   return new;
@@ -540,7 +540,7 @@ begin
   if new.minimo is not null and new.quantidade <= new.minimo and (old.quantidade > old.minimo or old.minimo is null) then
     insert into public.notificacoes (perfil_id, titulo, corpo, url)
     select distinct m.perfil_id, 'Material acabando: ' || new.nome,
-           'Restam ' || trim(to_char(new.quantidade, 'FM999G990D99')) || ' ' || new.unidade || '.', '#/casa/materiais'
+           'Restam ' || public.texto_quantidade(new.quantidade) || ' ' || new.unidade || '.', '#/casa/materiais'
     from public.membros m
     where m.terreiro_id = new.terreiro_id and m.aprovado
       and (m.papel = 'zelador'

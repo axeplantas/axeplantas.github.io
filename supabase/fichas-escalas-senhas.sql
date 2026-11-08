@@ -432,9 +432,15 @@ begin
   return greatest(v_total - v_outros, 0);
 end $$;
 
+-- Números no jeito brasileiro: 2 → "2"; 2,5 → "2,5"; dinheiro → "R$ 70,00"
 create or replace function public.texto_quantidade(p_quantidade numeric) returns text
 language sql immutable set search_path = '' as $$
-  select trim(to_char(p_quantidade, 'FM999G990D99'))
+  select replace(regexp_replace(to_char(p_quantidade, 'FM999999990.99'), '\.$', ''), '.', ',')
+$$;
+
+create or replace function public.texto_reais(p_valor numeric) returns text
+language sql immutable set search_path = '' as $$
+  select 'R$ ' || replace(to_char(coalesce(p_valor, 0), 'FM999999990.00'), '.', ',')
 $$;
 
 create or replace function public.contribuir_item(p_item uuid, p_quantidade numeric) returns void
@@ -495,7 +501,7 @@ begin
   if p_perfil <> auth.uid() then
     insert into public.notificacoes (perfil_id, titulo, corpo, url)
     values (p_perfil, 'Você ficou com um item: ' || v_ob.nome,
-            'Levar ' || trim(to_char(p_quantidade, 'FM999G990D99')) || coalesce(' ' || v_item.unidade, '') || ' de '
+            'Levar ' || public.texto_quantidade(p_quantidade) || coalesce(' ' || v_item.unidade, '') || ' de '
               || coalesce(v_item.nome, (select nome_popular from public.folhas where id = v_item.folha_id), 'item')
               || coalesce(' até ' || to_char(v_ob.data, 'DD/MM'), '') || '.',
             '#/obrigacoes/' || v_ob.id);
