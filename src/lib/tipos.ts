@@ -77,14 +77,20 @@ export interface Obrigacao {
   visibilidade: 'privado' | 'terreiro'
   terreiro_id: string
   criado_por: string | null
+  filho_id?: string | null
   created_at: string
 }
 
 export interface ItemObrigacao {
   id: string
   obrigacao_id: string
-  folha_id: string
+  folha_id: string | null
+  nome?: string | null
+  categoria?: string
   quantidade: string | null
+  quantidade_total?: number | null
+  unidade?: string | null
+  aberto?: boolean
   colhida: boolean
   folhas: Pick<Folha, 'nome_popular' | 'nome_ritual' | 'toxica' | 'alerta'> | null
 }
@@ -129,6 +135,7 @@ export interface Casa {
   isento: boolean
   mensalidade_valor: number | null
   aprovado_em: string | null
+  permissoes?: Permissao[]
   terreiros: Pick<Terreiro, 'nome' | 'nacao'> | null
 }
 
@@ -145,6 +152,9 @@ export interface FinanceiroCasa {
   dia_vencimento: number
   instrucoes: string | null
   inicio: string
+  lembrete_dias?: number[]
+  lembrar_atrasados?: boolean
+  atraso_intervalo?: number
 }
 
 export interface Cobranca {
@@ -246,4 +256,161 @@ export function formatarReais(valor: number | null | undefined): string {
 export function formatarDataCurta(data: string): string {
   const [ano, mes, dia] = data.slice(0, 10).split('-')
   return `${dia}/${mes}/${ano}`
+}
+
+// ---------------------------------------------------------------------
+// Ficha, funções, escalas, senhas e registro de atividades
+// ---------------------------------------------------------------------
+
+/** O que o zelador pode autorizar um filho a fazer. */
+export type Permissao = 'fichas' | 'senhas' | 'escalas' | 'funcoes'
+
+export const ROTULO_PERMISSAO: Record<Permissao, string> = {
+  fichas: 'Ver as fichas dos filhos (saúde e orixás)',
+  escalas: 'Montar escalas e marcar presença',
+  funcoes: 'Distribuir itens das funções e obrigações',
+  senhas: 'Entregar e chamar senhas na gira',
+}
+
+/** Alguém da casa (só o apelido: irmãos não veem mais nada uns dos outros). */
+export interface Irmao {
+  perfil_id: string
+  apelido: string
+  papel: Papel
+}
+
+export interface Medicamento {
+  nome: string
+  dose?: string
+  horarios?: string
+  para_que?: string
+  continuo?: boolean
+  observacao?: string
+}
+
+export interface Ficha {
+  perfil_id: string
+  terreiro_id: string
+  nome_completo: string | null
+  data_nascimento: string | null
+  telefone: string | null
+  contato_emergencia: string | null
+  tipo_sanguineo: string | null
+  alergias: string | null
+  condicoes_saude: string | null
+  medicamentos: Medicamento[]
+  orixa_cabeca: string | null
+  orixa_ajunto: string | null
+  outros_orixas: string | null
+  nome_de_santo: string | null
+  data_iniciacao: string | null
+  guias: string | null
+  mestres: string | null
+  entidades: string | null
+  observacoes: string | null
+  consentimento_em: string | null
+  atualizado_em: string
+  atualizado_por: string | null
+}
+
+export interface ResumoFicha {
+  perfil_id: string
+  apelido: string
+  preenchida: boolean
+  data_nascimento: string | null
+  orixa_cabeca: string | null
+  orixa_ajunto: string | null
+  nome_de_santo: string | null
+  data_iniciacao: string | null
+  alergias: string | null
+  condicoes_saude: string | null
+  remedios_continuos: number
+  total_remedios: number
+  atualizado_em: string | null
+}
+
+export type CategoriaItem = CategoriaMaterial | 'semente'
+
+export const ROTULO_CATEGORIA_ITEM: Record<CategoriaItem, string> = {
+  folha: '🌿 Folha / erva',
+  animal: '🐓 Bicho',
+  semente: '🌰 Semente / grão',
+  vela: '🕯️ Vela',
+  bebida: '🍶 Bebida',
+  alimento: '🍚 Comida',
+  louca: '🏺 Louça / alguidar',
+  tecido: '🧵 Tecido / roupa',
+  ferramenta: '🔱 Ferramenta / fio',
+  outro: '📦 Outro',
+}
+
+export interface Contribuicao {
+  id: string
+  item_id: string
+  obrigacao_id: string
+  terreiro_id: string
+  perfil_id: string
+  quantidade: number
+  status: 'combinado' | 'entregue'
+  atribuido_por: string | null
+  entregue_em: string | null
+  created_at: string
+}
+
+export type ModoEscala = 'todos' | 'escolhidos' | 'vagas'
+
+export interface Escala {
+  id: string
+  terreiro_id: string
+  titulo: string
+  descricao: string | null
+  data: string
+  hora: string | null
+  local: string | null
+  modo: ModoEscala
+  vagas: number | null
+  obrigacao_id: string | null
+  criado_por: string | null
+  created_at: string
+}
+
+export interface PessoaEscala {
+  escala_id: string
+  perfil_id: string
+  terreiro_id: string
+  status: 'convocado' | 'confirmado' | 'recusou'
+  presenca: 'presente' | 'faltou' | null
+  respondeu_em: string | null
+}
+
+export interface Senha {
+  id: string
+  terreiro_id: string
+  data: string
+  numero: number
+  nome: string | null
+  status: 'aguardando' | 'chamada' | 'atendida' | 'ausente'
+  chamada_em: string | null
+  created_at: string
+}
+
+export interface Registro {
+  id: number
+  terreiro_id: string
+  perfil_id: string | null
+  acao: string
+  alvo_perfil: string | null
+  descricao: string | null
+  detalhe: Record<string, unknown> | null
+  created_at: string
+}
+
+/** Idade em anos completos a partir de "AAAA-MM-DD". */
+export function idade(nascimento: string | null): number | null {
+  if (!nascimento) return null
+  const [a, m, d] = nascimento.split('-').map(Number)
+  const hoje = new Date()
+  let anos = hoje.getFullYear() - a
+  if (hoje.getMonth() + 1 < m || (hoje.getMonth() + 1 === m && hoje.getDate() < d)) anos--
+  return anos
 }

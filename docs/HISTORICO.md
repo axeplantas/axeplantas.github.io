@@ -4,6 +4,20 @@ Entradas mais recentes no topo. Cada versão diz **o que mudou** e **por quê**.
 
 ---
 
+## v0.14 — 08/11/2026 — Ficha dos filhos, escalas, senhas, relatórios e app sob medida
+**Origem:** conversas com pais e mães de santo de vários terreiros.
+- **Ficha do filho** (uma por casa): dados pessoais, saúde (alergias, problemas de saúde, remédios com dose, horário, para que serve e se é de uso contínuo) e espiritual (orixás, nome de santo, iniciação, guias, mestres, entidades). Só o próprio filho, o zelador e quem ele autorizar veem; irmãos nunca. Saúde só o filho edita; a parte espiritual o zelador também. Toda leitura por outra pessoa fica registrada. Dá para copiar a ficha de outra casa.
+- **Funções e obrigações com qualquer item:** folhas, bichos, sementes, velas, bebidas... com quantidade. Filhos se oferecem ("eu levo 2") ou o zelador distribui (escolhe o filho e a quantidade, e ele é avisado). A obrigação pode ser "de um filho", para medir a ajuda entre irmãos.
+- **Escalas:** convocar a casa toda, escolher filhos ou abrir vagas ("preciso de 6"): todos são avisados e os primeiros que confirmam entram. Presença e falta marcadas depois. Lembrete na véspera e aviso de vagas sobrando.
+- **Senhas da gira:** na porta, anota o primeiro nome e entrega a senha; na hora, "chamar próxima" e modo tela grande. Nomes apagados após 30 dias.
+- **Lembretes de pagamento:** o zelador escolhe quantos dias antes avisar e de quanto em quanto tempo lembrar quem está em atraso.
+- **Configurações da casa:** o zelador liga e desliga cada parte do app (mapa, funções, financeiro, calendário, escalas, fichas, materiais, senhas); o que está desligado some para todos da casa.
+- **Permissões:** o zelador autoriza filhos a ver fichas, montar escalas, distribuir itens ou cuidar das senhas.
+- **Relatórios:** em dia × atrasados, pontualidade por filho, mensalidade mês a mês, contribuições; participação e faltas nas escalas; quem contribui nas funções e nas obrigações dos irmãos; uso do app e "sumidos"; aniversariantes, orixás, tempo de santo e alertas de saúde; atendimentos por gira; mapa e materiais. Com planilha para baixar.
+- **Registro de atividades:** o zelador vê o que cada filho fez e quando; ninguém apaga; dados de saúde nunca entram.
+- Lema corrigido para a grafia iorubá: *Kò sí ewé, kò sí òrìṣà*.
+- Política de privacidade atualizada (versão 2026-11).
+
 ## v0.13 — 25/10/2026 — Localização e identificação mais precisas
 **Problema relatado:** a marcação às vezes ficava com ~60 m de erro, e o identificador errava.
 - **GPS:** em vez de aceitar a primeira posição (que costuma vir do Wi-Fi ou da antena), o app escuta o GPS por até 30 s e vai levando a mira para a leitura mais precisa, mostrando "melhorando… ~X m". Um círculo azul mostra a margem de erro.

@@ -4,7 +4,7 @@ import Convites from '../components/Convites'
 import { avisar } from '../lib/avisos'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
-import { formatarReais, ROTULO_PAPEL, type MembroDaCasa, type Papel } from '../lib/tipos'
+import { formatarReais, ROTULO_PAPEL, ROTULO_PERMISSAO, type MembroDaCasa, type Papel, type Permissao } from '../lib/tipos'
 
 /** Zelador: quem é da casa, papéis, contador e mensalidade de cada filho. */
 export default function Membros() {
@@ -96,7 +96,8 @@ export default function Membros() {
         <h2>Na casa ({aprovados.length})</h2>
         <p className="sutil">
           Toque em alguém para mudar a função. <strong>Validador</strong> confere folhas e pontos e cuida do calendário;{' '}
-          <strong>contador</strong> confere comprovantes e vê o financeiro (pode ser junto com qualquer papel).
+          <strong>contador</strong> confere comprovantes e vê o financeiro. Você também pode autorizar alguém a ver as
+          fichas, montar escalas, distribuir itens ou cuidar das senhas.
         </p>
         {aprovados.map((m) => {
           const ehEu = m.perfil_id === perfil?.id
@@ -107,14 +108,21 @@ export default function Membros() {
                 <span>
                   <strong>{m.perfis?.apelido}{ehEu ? ' (você)' : ''}</strong>
                   <div className="sutil">
-                    {ROTULO_PAPEL[m.papel]}{m.contador ? ' · contador(a)' : ''} · mensalidade: {valor}
+                    {ROTULO_PAPEL[m.papel]}{m.contador ? ' · contador(a)' : ''}
+                    {m.papel !== 'zelador' && (m.permissoes ?? []).length > 0 ? ` · ${(m.permissoes ?? []).length} permissão(ões)` : ''} · mensalidade: {valor}
                     {m.mensalidade_valor !== null && !m.isento ? ' (valor próprio)' : ''}
                   </div>
                 </span>
                 <span aria-hidden>{aberto === m.perfil_id ? '▲' : '▼'}</span>
               </button>
               {aberto === m.perfil_id && (
-                <EditarMembro membro={m} ehEu={ehEu} padrao={padrao} aoSalvar={salvar} aoRemover={remover} />
+                <EditarMembro membro={m} ehEu={ehEu} padrao={padrao} aoSalvar={salvar} aoRemover={remover}
+                  aoMudarPermissoes={async (lista) => {
+                    const { error } = await supabase.rpc('definir_permissoes', { p_usuario: m.perfil_id, p_terreiro: terreiro, p_permissoes: lista })
+                    if (error) avisar(mensagemDeErro(error), 'erro')
+                    else avisar('Permissões atualizadas.')
+                    await carregar()
+                  }} />
               )}
             </div>
           )
@@ -130,13 +138,15 @@ export default function Membros() {
   )
 }
 
-function EditarMembro({ membro, ehEu, padrao, aoSalvar, aoRemover }: {
+function EditarMembro({ membro, ehEu, padrao, aoSalvar, aoRemover, aoMudarPermissoes }: {
   membro: MembroDaCasa
   ehEu: boolean
   padrao: number | null
   aoSalvar: (m: MembroDaCasa, mudancas: Partial<MembroDaCasa>, mensagem: string) => Promise<void>
   aoRemover: (m: MembroDaCasa) => void
+  aoMudarPermissoes: (lista: Permissao[]) => Promise<void>
 }) {
+  const permissoes = membro.permissoes ?? []
   const [valor, setValor] = useState(membro.mensalidade_valor?.toString() ?? '')
   const nome = membro.perfis?.apelido ?? 'Filho'
 
@@ -161,6 +171,19 @@ function EditarMembro({ membro, ehEu, padrao, aoSalvar, aoRemover }: {
             e.target.checked ? `${nome} agora também é contador(a).` : `${nome} deixou de ser contador(a).`)} />
         Também é contador(a): confere comprovantes e vê as finanças da casa
       </label>
+
+      {membro.papel !== 'zelador' && (
+        <fieldset className="permissoes">
+          <legend>Também pode:</legend>
+          {(Object.keys(ROTULO_PERMISSAO) as Permissao[]).map((p) => (
+            <label key={p} className="opcao">
+              <input type="checkbox" checked={permissoes.includes(p)}
+                onChange={(e) => aoMudarPermissoes(e.target.checked ? [...permissoes, p] : permissoes.filter((x) => x !== p))} />
+              {ROTULO_PERMISSAO[p]}
+            </label>
+          ))}
+        </fieldset>
+      )}
 
       <label className="opcao">
         <input type="checkbox" checked={membro.isento}

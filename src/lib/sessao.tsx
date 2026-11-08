@@ -1,11 +1,14 @@
 import type { Session } from '@supabase/supabase-js'
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { lerModulos, TODOS_LIGADOS, type Modulos } from './modulos'
 import { supabase } from './supabase'
-import type { Casa, Perfil } from './tipos'
+import type { Casa, Perfil, Permissao } from './tipos'
 
 interface Sessao {
   sessao: Session | null
   perfil: Perfil | null
+  /** Partes do app que o zelador deixou ligadas na casa ativa. */
+  modulos: Modulos
   /** Todas as casas da pessoa (aprovadas ou aguardando). */
   casas: Casa[]
   /** O vínculo com a casa escolhida no momento. */
@@ -67,7 +70,7 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
       supabase.from('perfis').select('*, terreiros!perfis_terreiro_id_fkey(nome, nacao)').eq('id', usuarioId).maybeSingle(),
       supabase
         .from('membros')
-        .select('terreiro_id, papel, aprovado, contador, isento, mensalidade_valor, aprovado_em, terreiros!membros_terreiro_id_fkey(nome, nacao)')
+        .select('terreiro_id, papel, aprovado, contador, isento, mensalidade_valor, aprovado_em, permissoes, terreiros!membros_terreiro_id_fkey(nome, nacao)')
         .eq('perfil_id', usuarioId),
     ])
     if (resPerfil.error) {
@@ -115,7 +118,38 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
     return () => data.subscription.unsubscribe()
   }, [buscarPerfil])
 
-  const recarregarPerfil = useCallback(() => buscarPerfil(sessao?.user.id), [buscarPerfil, sessao?.user.id])
+  // Módulos ligados na casa ativa (guardados no celular para abrir sem internet)
+  // e o registro de que a pessoa abriu o app nesta casa.
+  const terreiroAtivo = perfil?.aprovado ? perfil.terreiro_id : null
+  const [modulos, setModulos] = useState<Modulos>(TODOS_LIGADOS)
+  useEffect(() => {
+    if (!terreiroAtivo) return
+    const chave = `axe-plantas:modulos:${terreiroAtivo}`
+    try {
+      setModulos(lerModulos(JSON.parse(localStorage.getItem(chave) ?? 'null')))
+    } catch {
+      setModulos(TODOS_LIGADOS)
+    }
+    supabase.from('casa_config').select('modulos').eq('terreiro_id', terreiroAtivo).maybeSingle()
+      .then(({ data, error }) => {
+        if (error) return
+        const config = (data?.modulos ?? {}) as Record<string, unknown>
+        setModulos(lerModulos(config))
+        try {
+          localStorage.setItem(chave, JSON.stringify(config))
+        } catch {
+          // Sem armazenamento: segue sem a cópia.
+        }
+      })
+    supabase.rpc('registrar_acesso', { p_terreiro: terreiroAtivo }).then(() => undefined)
+  }, [terreiroAtivo])
+
+  const recarregarPerfil = useCallback(async () => {
+    await buscarPerfil(sessao?.user.id)
+    if (!terreiroAtivo) return
+    const { data } = await supabase.from('casa_config').select('modulos').eq('terreiro_id', terreiroAtivo).maybeSingle()
+    if (data) setModulos(lerModulos(data.modulos as Record<string, unknown>))
+  }, [buscarPerfil, sessao?.user.id, terreiroAtivo])
 
   const trocarCasa = useCallback(async (terreiroId: string) => {
     const { error } = await supabase.rpc('trocar_casa', { p_terreiro: terreiroId })
@@ -141,6 +175,7 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
   const valor: Sessao = {
     sessao,
     perfil,
+    modulos,
     casas: casas.length > 0 || !casaDoPerfil ? casas : [casaDoPerfil],
     casaAtiva,
     carregando,
@@ -185,4 +220,9 @@ export function ehGestorFinanceiro(casa: Casa | null): boolean {
 /** Zelador ou validador: cuida do calendário. */
 export function ehEquipe(casa: Casa | null): boolean {
   return casa?.aprovado === true && (casa.papel === 'zelador' || casa.papel === 'validador')
+}
+
+/** O zelador tem todas; os outros só as que ele deu. */
+export function temPermissao(casa: Casa | null, permissao: Permissao): boolean {
+  return casa?.aprovado === true && (casa.papel === 'zelador' || (casa.permissoes ?? []).includes(permissao))
 }

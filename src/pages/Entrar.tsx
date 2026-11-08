@@ -95,7 +95,7 @@ export default function Entrar() {
     <main className="tela-central">
       <img src="logo-vertical.svg" alt="Axé Plantas" className="logo" />
       <p className="lema">
-        <span className="lema-yoruba">Kosi ewe, kosi Orisa</span>
+        <span className="lema-yoruba">Kò sí ewé, kò sí òrìṣà</span>
         <span className="lema-traducao">Sem folha, não há Orixá</span>
       </p>
       {modoDemo && (

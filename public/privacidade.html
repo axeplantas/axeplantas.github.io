@@ -11,7 +11,7 @@
 <main>
   <a href="./" class="topo"><img src="logo.svg" alt="" /> Axé Plantas</a>
   <h1>Política de Privacidade</h1>
-  <p class="data">Versão 2026-10b · última atualização: 14 de outubro de 2026</p>
+  <p class="data">Versão 2026-11 · última atualização: 8 de novembro de 2026</p>
 
   <p class="resumo">
     <strong>Em poucas palavras:</strong> pedimos o mínimo de dados para o app funcionar. Não vendemos, não mostramos
@@ -33,7 +33,10 @@
     <li><strong>O que você publica:</strong> pontos no mapa (a localização da <em>planta</em>, que você escolhe), fotos, observações, folhas cadastradas, fundamentos da casa e listas de obrigações.</li>
     <li><strong>Casas e papéis:</strong> de quais terreiros você faz parte (pode ser mais de um), seu papel em cada um e se é contador(a).</li>
     <li><strong>Mensalidades e contribuições:</strong> valores devidos, situação dos pagamentos e os comprovantes que você enviar (foto ou PDF). O app <strong>não</strong> movimenta dinheiro nem guarda dados bancários ou de cartão.</li>
-    <li><strong>Gestão da casa:</strong> eventos do calendário e materiais de trabalho cadastrados pela casa.</li>
+    <li><strong>Gestão da casa:</strong> eventos do calendário, materiais de trabalho, escalas (quem foi convocado, quem confirmou, quem compareceu) e funções/obrigações (quem vai levar cada item).</li>
+    <li><strong>Ficha do filho (opcional):</strong> nome completo, data de nascimento, telefone, contato de emergência, tipo sanguíneo, alergias, problemas de saúde, remédios e horários, e dados espirituais (orixás, nome de santo, iniciação, guias, mestres, entidades). Saúde e religião são <strong>dados sensíveis</strong>: a ficha só é guardada com o seu consentimento específico, dado na própria ficha.</li>
+    <li><strong>Registro de atividades:</strong> o app anota o que é feito na casa (ex.: "abriu o app", "enviou comprovante", "confirmou presença numa escala", "abriu a ficha de alguém"), com quem fez e quando, para o zelador acompanhar e para a segurança das fichas. O registro <strong>nunca</strong> contém os dados de saúde: só que a ficha foi vista ou alterada e quais campos mudaram.</li>
+    <li><strong>Senhas de atendimento:</strong> quando a casa usa senhas na gira, é anotado o <strong>primeiro nome</strong> de quem chegou e o número da senha. Esses nomes são apagados automaticamente após 30 dias.</li>
     <li><strong>Fotos:</strong> antes do envio, o próprio app apaga os dados ocultos da imagem (EXIF), que podem conter o local onde a foto foi tirada e o modelo do celular.</li>
     <li><strong>Sua localização:</strong> usada apenas no seu celular, para centralizar o mapa e calcular a distância até as folhas. Ela <strong>não é enviada nem guardada</strong>. Só fica salvo o ponto da planta que você escolher marcar.</li>
     <li><strong>Registros técnicos:</strong> nossos provedores de hospedagem registram dados como endereço IP e horário de acesso, para segurança e funcionamento.</li>
@@ -44,6 +47,8 @@
     <li>Criar e proteger sua conta e ligar você ao seu terreiro: <strong>consentimento</strong> (art. 11, I) e <strong>execução do serviço</strong> que você pediu (art. 7º, V).</li>
     <li>Mostrar no mapa os pontos e as listas que você compartilhar, para as pessoas que você escolher.</li>
     <li>Permitir que zeladores e validadores aprovem membros e conteúdos.</li>
+    <li>Ficha do filho: para a casa cuidar de você (por exemplo, saber de uma alergia antes de um banho de ervas ou de uma obrigação): <strong>consentimento específico</strong> (art. 11, I).</li>
+    <li>Registro de atividades: segurança e prestação de contas dentro da casa (<strong>legítimo interesse</strong>, art. 7º, IX), sem dados de saúde.</li>
     <li>Responder aos seus pedidos e manter o app seguro.</li>
   </ul>
   <p>Não usamos seus dados para publicidade, perfilamento ou qualquer finalidade diferente das descritas aqui.</p>
@@ -61,6 +66,10 @@
     <tr><td>Seus pagamentos e comprovantes</td><td>Você, o zelador e o contador da casa</td></tr>
     <tr><td>Calendário da casa</td><td>Membros aprovados da casa</td></tr>
     <tr><td>Materiais da casa</td><td>Quem o zelador liberar (toda a casa ou filhos escolhidos)</td></tr>
+    <tr><td>Sua ficha (saúde e espiritual)</td><td>Você, o zelador da casa e quem ele autorizar. <strong>Outros filhos nunca veem.</strong> Cada vez que alguém abre a sua ficha, isso fica registrado. Saúde e dados pessoais só você altera.</td></tr>
+    <tr><td>Escalas e quem leva cada item das funções</td><td>Membros aprovados da casa (apenas o apelido)</td></tr>
+    <tr><td>Registro de atividades</td><td>Somente o zelador da casa</td></tr>
+    <tr><td>Senhas de atendimento</td><td>O zelador e quem ele autorizar</td></tr>
   </table>
   <p>Os pontos compartilhados não mostram quem os marcou. Os terreiros não aparecem no mapa.</p>
 
@@ -70,6 +79,7 @@
     <li><strong>Supabase:</strong> banco de dados, login e armazenamento das fotos.</li>
     <li><strong>GitHub Pages:</strong> hospedagem dos arquivos do aplicativo.</li>
     <li><strong>OpenStreetMap:</strong> imagens do mapa. Ao carregar o mapa, o seu endereço IP é enviado para eles.</li>
+    <li><strong>Esri (ArcGIS):</strong> fotos de satélite, só quando você escolhe a visão "Satélite". Seu endereço IP é enviado para eles.</li>
     <li><strong>Google Maps:</strong> só se você tocar em “Como chegar”. Aí é aberto o Google Maps, com as regras de privacidade do Google.</li>
   </ul>
   <p>
@@ -91,8 +101,11 @@
   <ul>
     <li>sua conta, seu e-mail, seu apelido e todas as suas fotos são apagados;</li>
     <li>seus pontos e obrigações marcados como “Só eu” são apagados;</li>
+    <li>suas fichas (em todas as casas) são apagadas;</li>
+    <li>no registro de atividades, as ações continuam, mas <strong>sem ligação com você</strong>;</li>
     <li>os pontos que você compartilhou continuam no mapa, <strong>sem foto e sem qualquer ligação com você</strong>, para não prejudicar a comunidade.</li>
   </ul>
+  <p>Você também pode apagar qualquer informação da sua ficha a qualquer momento, editando-a. O registro de atividades é guardado por 1 ano.</p>
   <p>Cópias de segurança do provedor podem levar alguns dias para serem eliminadas.</p>
 
   <h2>8. Seus direitos</h2>

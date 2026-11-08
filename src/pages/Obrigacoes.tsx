@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useSessao } from '../lib/sessao'
+import { useIrmaos } from '../lib/casa'
+import { ehEquipe, temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import type { Obrigacao } from '../lib/tipos'
 
@@ -41,10 +42,13 @@ export default function Obrigacoes() {
   return (
     <div className="pagina">
       <div className="cabecalho">
-        <h1>Obrigações</h1>
+        <h1>Funções e obrigações</h1>
         {!criando && <button className="botao" onClick={() => setCriando(true)}>+ Nova</button>}
       </div>
-      <p className="sutil">Monte a lista de folhas e veja onde encontrar cada uma perto de você.</p>
+      <p className="sutil">
+        Liste tudo o que vai ser preciso (folhas, bichos, sementes, velas...). Os filhos se oferecem para levar ou o zelador
+        distribui quem leva o quê.
+      </p>
 
       {criando && <NovaObrigacao aoCriar={(id) => navegar(`/obrigacoes/${id}`)} aoCancelar={() => setCriando(false)} />}
 
@@ -64,7 +68,7 @@ export default function Obrigacoes() {
               </div>
               <div className="progresso-numero">
                 {o.colhidas}/{o.total}
-                <span className="sutil">colhidas</span>
+                <span className="sutil">prontos</span>
               </div>
             </Link>
           </li>
@@ -75,7 +79,10 @@ export default function Obrigacoes() {
 }
 
 function NovaObrigacao({ aoCriar, aoCancelar }: { aoCriar: (id: string) => void; aoCancelar: () => void }) {
-  const { perfil } = useSessao()
+  const { perfil, casaAtiva } = useSessao()
+  const irmaos = useIrmaos(casaAtiva?.terreiro_id)
+  const podeEscolherFilho = ehEquipe(casaAtiva) || temPermissao(casaAtiva, 'funcoes')
+  const [filho, setFilho] = useState('')
   const [nome, setNome] = useState('')
   const [data, setData] = useState('')
   const [observacao, setObservacao] = useState('')
@@ -94,6 +101,7 @@ function NovaObrigacao({ aoCriar, aoCancelar }: { aoCriar: (id: string) => void;
         observacao: observacao.trim() || null,
         visibilidade,
         terreiro_id: perfil!.terreiro_id,
+        ...(filho && visibilidade === 'terreiro' ? { filho_id: filho } : {}),
       })
       .select('id')
       .single()
@@ -110,7 +118,7 @@ function NovaObrigacao({ aoCriar, aoCancelar }: { aoCriar: (id: string) => void;
       <label>
         Nome *
         <input value={nome} onChange={(e) => setNome(e.target.value)} required maxLength={80}
-          placeholder="Ex.: Obrigação de 7 anos da Ana" />
+          placeholder="Ex.: Obrigação de 7 anos da Ana, Festa de Ogum" />
       </label>
       <label>
         Data (opcional)
@@ -119,20 +127,30 @@ function NovaObrigacao({ aoCriar, aoCancelar }: { aoCriar: (id: string) => void;
       <div className="opcoes">
         <label className="opcao">
           <input type="radio" checked={visibilidade === 'terreiro'} onChange={() => setVisibilidade('terreiro')} />
-          Meu terreiro (a casa vê e ajuda a colher)
+          Minha casa (os filhos veem e ajudam a levar)
         </label>
         <label className="opcao">
           <input type="radio" checked={visibilidade === 'privado'} onChange={() => setVisibilidade('privado')} />
           Só eu
         </label>
       </div>
+      {visibilidade === 'terreiro' && podeEscolherFilho && (
+        <label>
+          É obrigação de algum filho? (opcional)
+          <select value={filho} onChange={(e) => setFilho(e.target.value)}>
+            <option value="">Não, é da casa</option>
+            {irmaos.map((i) => <option key={i.perfil_id} value={i.perfil_id}>{i.apelido}</option>)}
+          </select>
+          <span className="dica">Assim os relatórios mostram quais irmãos ajudaram na obrigação dele.</span>
+        </label>
+      )}
       <label>
         Observação (opcional)
         <textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} rows={2} maxLength={500} />
       </label>
       {erro && <p className="erro">{erro}</p>}
       <div className="linha">
-        <button className="primario" disabled={salvando}>{salvando ? 'Criando…' : 'Criar e adicionar folhas'}</button>
+        <button className="primario" disabled={salvando}>{salvando ? 'Criando…' : 'Criar e adicionar itens'}</button>
         <button type="button" className="link" onClick={aoCancelar}>Cancelar</button>
       </div>
     </form>

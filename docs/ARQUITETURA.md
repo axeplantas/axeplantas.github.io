@@ -47,7 +47,13 @@ docs/                estes registros
 |---|---|
 | `terreiros` | casas participantes |
 | `perfis` | uma por pessoa: apelido, casa ativa, administrador, consentimento (papel e aprovação copiam o vínculo da casa ativa) |
-| `membros` | vínculo pessoa–casa: papel, aprovação, contador, mensalidade própria, isenção |
+| `membros` | vínculo pessoa–casa: papel, aprovação, contador, mensalidade própria, isenção, permissões extras (`fichas`, `escalas`, `funcoes`, `senhas`) |
+| `casa_config` | módulos ligados/desligados pelo zelador (ausente = ligado) |
+| `fichas` | ficha do filho por casa (saúde e espiritual). **Sem acesso direto:** só pelas funções `abrir_ficha`, `salvar_ficha`, `listar_fichas`, `copiar_minha_ficha` |
+| `escalas`, `escala_pessoas` | escalas (todos / escolhidos / vagas) e quem confirmou, recusou, veio ou faltou |
+| `item_contribuicoes` | quem leva cada item de uma função, quanto, se foi pedido do zelador e se já entregou |
+| `senhas` | senhas de atendimento da gira (nome apagado após 30 dias) |
+| `registros` | registro de atividades (só o zelador lê; gerado por gatilhos e pelas funções) |
 | `financeiro_casa`, `cobrancas`, `cobranca_alvos`, `pagamentos` | mensalidades, contribuições e comprovantes |
 | `eventos` | calendário da casa (feriados são calculados no app) |
 | `materiais`, `movimentos_material`, `materiais_config`, `materiais_acesso` | estoque e quem pode ver/editar |
@@ -55,7 +61,7 @@ docs/                estes registros
 | `folhas` | catálogo (sem terreiro) e folhas cadastradas pelas casas (com status de validação) |
 | `fundamentos` | Orixás e usos por folha **e por terreiro** |
 | `pontos` | onde a folha está: coordenadas, fotos, visibilidade, status |
-| `obrigacoes`, `obrigacao_itens` | listas de folhas para preparar |
+| `obrigacoes`, `obrigacao_itens` | funções e obrigações: itens de qualquer tipo (folha, bicho, semente...), quantidade e se os filhos podem se oferecer; `filho_id` = de quem é a obrigação |
 | `push_inscricoes`, `notificacoes`, `config_push` | notificações no celular |
 
 Toda leitura e escrita passa pelas regras de acesso (RLS). Ações sensíveis (aprovar membro, criar convite, excluir conta) são funções `security definer` com verificação de papel.
@@ -67,7 +73,9 @@ Toda leitura e escrita passa pelas regras de acesso (RLS). Ações sensíveis (a
 - **Marcar ponto:** fotos reduzidas e sem EXIF → (opcional) função `identificar` → envio das fotos ao Storage → registro em `pontos`. Sem internet, vai para a fila no IndexedDB e é enviado depois (`src/lib/fila.ts`).
 - **Casa ativa:** `trocar_casa` muda `perfis.terreiro_id`; as funções `meu_terreiro()`, `sou_validador()` e `sou_zelador()` olham o vínculo dessa casa. As telas de gestão usam `eh_zelador_de(casa)`, `eh_gestor_financeiro_de(casa)` etc.
 - **Mensalidades:** `garantir_mensalidades` cria as cobranças do mês ao abrir a tela; o filho chama `informar_pagamento` (com o caminho do comprovante no armazenamento `comprovantes/<casa>/<pessoa>/`); zelador ou contador chama `conferir_pagamento`.
-- **Agendador:** `pg_cron` roda `lembrar_eventos()` todo dia às 9h (Brasília).
+- **Agendador:** `pg_cron` roda `lembrar_eventos()` às 9h e `lembretes_diarios()` às 8h (Brasília): lembretes de pagamento conforme a configuração da casa, escalas de amanhã, vagas sobrando, aniversários (para o zelador) e limpeza (nomes de senhas com mais de 30 dias, registros com mais de 1 ano).
+- **Módulos:** a sessão lê `casa_config` da casa ativa (`useSessao().modulos`); rotas, menu e cartões só aparecem se o módulo estiver ligado. Permissões extras: `temPermissao(casa, 'fichas')` etc.
+- **Relatórios:** calculados no app a partir das tabelas da casa (buscadas de mil em mil linhas), mais `uso_do_app` e `resumo_senhas`, que já vêm somados do banco.
 - **Notificações:** gatilhos no banco → `notificacoes` → `pg_net` chama a função `notificar` → Web Push para os celulares inscritos.
 - **Atualização do app:** o service worker procura versão nova ao abrir e quando o app volta para a tela (`src/lib/atualizacao.ts`).
 

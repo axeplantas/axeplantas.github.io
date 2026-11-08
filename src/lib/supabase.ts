@@ -17,7 +17,7 @@ export const supabase: SupabaseClient = modoDemo
 export const BUCKET_FOTOS = 'fotos'
 
 /** Versão dos termos e da política aceitos no cadastro. Mude ao alterar os textos. */
-export const VERSAO_TERMOS = '2026-10b'
+export const VERSAO_TERMOS = '2026-11'
 
 export async function urlDaFoto(caminho: string): Promise<string | null> {
   const { data } = await supabase.storage.from(BUCKET_FOTOS).createSignedUrl(caminho, 60 * 60)

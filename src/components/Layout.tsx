@@ -55,6 +55,7 @@ function usePendencias(): number {
 
 export default function Layout() {
   const pendencias = usePendencias()
+  const { modulos } = useSessao()
 
   return (
     <div className="app">
@@ -65,15 +66,19 @@ export default function Layout() {
       <InstalarApp />
       <Avisos />
       <nav className="menu">
-        <NavLink to="/" end>
-          <span aria-hidden>🗺️</span>Mapa
-        </NavLink>
-        <NavLink to="/folhas">
-          <span aria-hidden>🌿</span>Folhas
-        </NavLink>
-        <NavLink to="/marcar" className="menu-destaque">
-          <span aria-hidden>＋</span>Marcar
-        </NavLink>
+        {modulos.mapa && (
+          <>
+            <NavLink to="/" end>
+              <span aria-hidden>🗺️</span>Mapa
+            </NavLink>
+            <NavLink to="/folhas">
+              <span aria-hidden>🌿</span>Folhas
+            </NavLink>
+            <NavLink to="/marcar" className="menu-destaque">
+              <span aria-hidden>＋</span>Marcar
+            </NavLink>
+          </>
+        )}
         <NavLink to="/casa" aria-label={pendencias ? `Casa, ${pendencias} pendentes` : 'Casa'}>
           <span aria-hidden className="icone-com-selo">
             🏠{pendencias > 0 && <b className="selo">{pendencias > 9 ? '9+' : pendencias}</b>}

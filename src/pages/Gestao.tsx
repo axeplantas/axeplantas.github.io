@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { avisar } from '../lib/avisos'
 import { hoje, seAplica, valorDe } from '../lib/financeiro'
 import { ehZelador, useSessao } from '../lib/sessao'
-import { mensagemDeErro, supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import {
   formatarDataCurta, formatarReais, ROTULO_PAPEL,
   type Cobranca, type Evento, type FinanceiroCasa, type MembroDaCasa, type Pagamento,
@@ -25,11 +24,10 @@ interface Resumo {
 
 /** Painel do zelador: números da casa e acesso a tudo o que ele administra. */
 export default function Gestao() {
-  const { casaAtiva, recarregarPerfil } = useSessao()
+  const { casaAtiva, modulos } = useSessao()
   const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const [resumo, setResumo] = useState<Resumo | null>(null)
-  const [editandoCasa, setEditandoCasa] = useState(false)
 
   const carregar = useCallback(async () => {
     if (!terreiro) return
@@ -101,19 +99,14 @@ export default function Gestao() {
       <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
       <h1>Gestão da casa</h1>
 
-      {editandoCasa ? (
-        <DadosDaCasa terreiro={terreiro} nome={casaAtiva?.terreiros?.nome ?? ''} nacao={casaAtiva?.terreiros?.nacao ?? ''}
-          aoTerminar={async (ok) => { setEditandoCasa(false); if (ok) await recarregarPerfil() }} />
-      ) : (
-        <div className="casa-atual">
-          <span className="casa-icone" aria-hidden>🏠</span>
-          <span className="cresce">
-            <strong>{casaAtiva?.terreiros?.nome}</strong>
-            <div className="sutil">{casaAtiva?.terreiros?.nacao}</div>
-          </span>
-          <button className="link" onClick={() => setEditandoCasa(true)}>Editar</button>
-        </div>
-      )}
+      <div className="casa-atual">
+        <span className="casa-icone" aria-hidden>🏠</span>
+        <span className="cresce">
+          <strong>{casaAtiva?.terreiros?.nome}</strong>
+          <div className="sutil">{casaAtiva?.terreiros?.nacao}</div>
+        </span>
+        <Link to="/casa/configuracoes" className="link">⚙️ Configurar</Link>
+      </div>
 
       {!r && <p className="sutil">Carregando os números da casa…</p>}
 
@@ -124,7 +117,7 @@ export default function Gestao() {
               <h2>Precisa da sua atenção</h2>
               {r.pendentes > 0 && <Link to="/casa/membros" className="linha-acao">👤 {r.pendentes} pedido(s) de entrada <span>›</span></Link>}
               {r.conferir > 0 && <Link to="/casa/financeiro" className="linha-acao">📎 {r.conferir} comprovante(s) para conferir <span>›</span></Link>}
-              {r.folhasPontos > 0 && <Link to="/painel" className="linha-acao">🌿 {r.folhasPontos} folha(s) ou ponto(s) para validar <span>›</span></Link>}
+              {modulos.mapa && r.folhasPontos > 0 && <Link to="/painel" className="linha-acao">🌿 {r.folhasPontos} folha(s) ou ponto(s) para validar <span>›</span></Link>}
             </section>
           )}
 
@@ -133,7 +126,7 @@ export default function Gestao() {
               <span className="indicador-numero">{aprovados.length}</span>
               <span>filho(s) na casa</span>
             </Link>
-            <Link to="/casa/financeiro" className="indicador">
+            {modulos.financeiro && <Link to="/casa/financeiro" className="indicador">
               {r.mensalidade ? (
                 <>
                   <span className="indicador-numero pequeno">{formatarReais(r.recebido)}</span>
@@ -146,8 +139,8 @@ export default function Gestao() {
                   <span>{r.config ? 'sem mensalidade este mês' : 'configure a mensalidade'}</span>
                 </>
               )}
-            </Link>
-            <Link to="/casa/calendario" className="indicador">
+            </Link>}
+            {modulos.calendario && <Link to="/casa/calendario" className="indicador">
               {r.proximo ? (
                 <>
                   <span className="indicador-numero pequeno">{formatarDataCurta(r.proximo.data).slice(0, 5)}</span>
@@ -159,10 +152,14 @@ export default function Gestao() {
                   <span>nenhum evento marcado</span>
                 </>
               )}
-            </Link>
-            <Link to="/casa/materiais" className={`indicador ${r.acabando > 0 ? 'alerta' : ''}`}>
+            </Link>}
+            {modulos.materiais && <Link to="/casa/materiais" className={`indicador ${r.acabando > 0 ? 'alerta' : ''}`}>
               <span className="indicador-numero">{r.acabando}</span>
               <span>material(is) acabando</span>
+            </Link>}
+            <Link to="/casa/relatorios" className="indicador">
+              <span className="indicador-numero pequeno">📊</span>
+              <span>ver todos os relatórios</span>
             </Link>
           </div>
 
@@ -174,7 +171,7 @@ export default function Gestao() {
                 <span className="cresce">
                   <strong>Filhos e funções</strong>
                   <span className="sutil">
-                    Aprovar pedidos, escolher validadores ({validadores.length}) e contador ({contadores.length ? contadores.map((c) => c.perfis?.apelido).join(', ') : 'nenhum'}), valor de mensalidade de cada um.
+                    Aprovar pedidos, validadores ({validadores.length}), contador ({contadores.length ? contadores.map((c) => c.perfis?.apelido).join(', ') : 'nenhum'}), permissões e mensalidade de cada um.
                   </span>
                 </span>
                 <span>›</span>
@@ -187,39 +184,111 @@ export default function Gestao() {
                 </span>
                 <span>›</span>
               </Link>
-              <Link to="/casa/financeiro" className="linha-acao grande">
-                <span>💰</span>
+              <Link to="/casa/relatorios" className="linha-acao grande">
+                <span>📊</span>
                 <span className="cresce">
-                  <strong>Financeiro</strong>
-                  <span className="sutil">
-                    {r.config
-                      ? `Mensalidade ${formatarReais(r.config.valor_padrao)}, vence dia ${r.config.dia_vencimento}. ${r.emAberto} em aberto neste mês. Contribuições, comprovantes e quem pagou.`
-                      : 'Configure o valor e a chave Pix para começar a cobrar.'}
+                  <strong>Relatórios</strong>
+                  <span className="sutil">Quem paga em dia e quem atrasa, participação nas escalas e funções, uso do app, aniversários e mais.</span>
+                </span>
+                <span>›</span>
+              </Link>
+              <Link to="/casa/registros" className="linha-acao grande">
+                <span>🕵️</span>
+                <span className="cresce">
+                  <strong>Registro de atividades</strong>
+                  <span className="sutil">O que cada filho fez no app, e quando.</span>
+                </span>
+                <span>›</span>
+              </Link>
+              {modulos.fichas && (
+                <Link to="/casa/fichas" className="linha-acao grande">
+                  <span>🩺</span>
+                  <span className="cresce">
+                    <strong>Fichas dos filhos</strong>
+                    <span className="sutil">Alergias, remédios, orixás, guias e mestres. Só você e quem você autorizar veem.</span>
                   </span>
-                </span>
-                <span>›</span>
-              </Link>
-              <Link to="/casa/calendario" className="linha-acao grande">
-                <span>📅</span>
+                  <span>›</span>
+                </Link>
+              )}
+              {modulos.financeiro && (
+                <Link to="/casa/financeiro" className="linha-acao grande">
+                  <span>💰</span>
+                  <span className="cresce">
+                    <strong>Financeiro</strong>
+                    <span className="sutil">
+                      {r.config
+                        ? `Mensalidade ${formatarReais(r.config.valor_padrao)}, vence dia ${r.config.dia_vencimento}. ${r.emAberto} em aberto neste mês.`
+                        : 'Configure o valor e a chave Pix para começar a cobrar.'}
+                    </span>
+                  </span>
+                  <span>›</span>
+                </Link>
+              )}
+              {modulos.escalas && (
+                <Link to="/casa/escalas" className="linha-acao grande">
+                  <span>🧹</span>
+                  <span className="cresce">
+                    <strong>Escalas</strong>
+                    <span className="sutil">Convocar a casa, escolher filhos ou abrir vagas (os primeiros que confirmarem entram).</span>
+                  </span>
+                  <span>›</span>
+                </Link>
+              )}
+              {modulos.funcoes && (
+                <Link to="/obrigacoes" className="linha-acao grande">
+                  <span>📋</span>
+                  <span className="cresce">
+                    <strong>Funções e obrigações</strong>
+                    <span className="sutil">Itens de todo tipo; distribua quem leva o quê.</span>
+                  </span>
+                  <span>›</span>
+                </Link>
+              )}
+              {modulos.calendario && (
+                <Link to="/casa/calendario" className="linha-acao grande">
+                  <span>📅</span>
+                  <span className="cresce">
+                    <strong>Calendário oficial</strong>
+                    <span className="sutil">Festas, giras e obrigações; a casa é avisada e lembrada na véspera.</span>
+                  </span>
+                  <span>›</span>
+                </Link>
+              )}
+              {modulos.senhas && (
+                <Link to="/casa/senhas" className="linha-acao grande">
+                  <span>🎟️</span>
+                  <span className="cresce">
+                    <strong>Senhas da gira</strong>
+                    <span className="sutil">Entregar na porta e chamar na ordem.</span>
+                  </span>
+                  <span>›</span>
+                </Link>
+              )}
+              {modulos.materiais && (
+                <Link to="/casa/materiais" className="linha-acao grande">
+                  <span>📦</span>
+                  <span className="cresce">
+                    <strong>Materiais de trabalho</strong>
+                    <span className="sutil">Estoque, entradas e saídas, e quem pode ver.</span>
+                  </span>
+                  <span>›</span>
+                </Link>
+              )}
+              {modulos.mapa && (
+                <Link to="/painel" className="linha-acao grande">
+                  <span>✔️</span>
+                  <span className="cresce">
+                    <strong>Validar folhas e pontos</strong>
+                    <span className="sutil">Conferir o que os filhos marcaram no mapa.</span>
+                  </span>
+                  <span>›</span>
+                </Link>
+              )}
+              <Link to="/casa/configuracoes" className="linha-acao grande">
+                <span>⚙️</span>
                 <span className="cresce">
-                  <strong>Calendário oficial</strong>
-                  <span className="sutil">Festas, giras e obrigações; a casa é avisada e lembrada na véspera.</span>
-                </span>
-                <span>›</span>
-              </Link>
-              <Link to="/casa/materiais" className="linha-acao grande">
-                <span>📦</span>
-                <span className="cresce">
-                  <strong>Materiais de trabalho</strong>
-                  <span className="sutil">Estoque, entradas e saídas, e quem pode ver.</span>
-                </span>
-                <span>›</span>
-              </Link>
-              <Link to="/painel" className="linha-acao grande">
-                <span>✔️</span>
-                <span className="cresce">
-                  <strong>Validar folhas e pontos</strong>
-                  <span className="sutil">Conferir o que os filhos marcaram no mapa.</span>
+                  <strong>Configurações da casa</strong>
+                  <span className="sutil">Ligue só o que a casa usa (ex.: senhas, mapa), lembretes de pagamento e dados da casa.</span>
                 </span>
                 <span>›</span>
               </Link>
@@ -246,43 +315,5 @@ export default function Gestao() {
         </>
       )}
     </div>
-  )
-}
-
-function DadosDaCasa({ terreiro, nome, nacao, aoTerminar }: {
-  terreiro: string
-  nome: string
-  nacao: string
-  aoTerminar: (ok: boolean) => void
-}) {
-  const [novoNome, setNovoNome] = useState(nome)
-  const [novaNacao, setNovaNacao] = useState(nacao)
-  const [erro, setErro] = useState('')
-
-  async function salvar(e: FormEvent) {
-    e.preventDefault()
-    const { error } = await supabase.rpc('atualizar_terreiro', { p_terreiro: terreiro, p_nome: novoNome, p_nacao: novaNacao })
-    if (error) return setErro(mensagemDeErro(error))
-    avisar('Dados da casa atualizados.')
-    aoTerminar(true)
-  }
-
-  return (
-    <form className="cartao formulario" onSubmit={salvar}>
-      <h2>Dados da casa</h2>
-      <label>
-        Nome da casa
-        <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} required maxLength={80} />
-      </label>
-      <label>
-        Nação / linha
-        <input value={novaNacao} onChange={(e) => setNovaNacao(e.target.value)} required maxLength={60} />
-      </label>
-      {erro && <p className="erro">{erro}</p>}
-      <div className="linha">
-        <button className="primario">Salvar</button>
-        <button type="button" className="link" onClick={() => aoTerminar(false)}>Cancelar</button>
-      </div>
-    </form>
   )
 }

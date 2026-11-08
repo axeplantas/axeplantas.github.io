@@ -1,7 +1,7 @@
 # Visão do produto
 
 ## O problema
-Nas religiões de matriz africana e afro-indígena (Candomblé, Umbanda, Jurema), as folhas são indispensáveis: banhos, sacudimentos, amacis, defumações, chás e obrigações dependem delas. *Kosi ewe, kosi Orisa*: sem folha, não há Orixá.
+Nas religiões de matriz africana e afro-indígena (Candomblé, Umbanda, Jurema), as folhas são indispensáveis: banhos, sacudimentos, amacis, defumações, chás e obrigações dependem delas. *Kò sí ewé, kò sí òrìṣà*: sem folha, não há Orixá.
 
 Na prática, encontrar uma folha específica, na hora certa e perto de casa, depende de conhecimento oral, de quem sabe onde tem. Esse conhecimento se perde com o tempo, fica restrito a poucas pessoas e é difícil de compartilhar com segurança.
 

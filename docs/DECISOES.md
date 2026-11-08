@@ -62,6 +62,19 @@ Cada decisão com o contexto, a escolha e o motivo. Úteis para quem for continu
 - **Contexto:** o estoque pode incluir itens sensíveis da casa (como animais), e cada casa tem a sua forma de tratar isso.
 - **Escolha:** o zelador decide: toda a casa vê, ou só filhos escolhidos; e quem pode editar.
 
+### D15. Ficha do filho: uma por casa, com sigilo e registro
+- **Escolha:** cada casa tem a sua ficha da pessoa (orixás e guias mudam de casa para casa); dá para copiar de outra casa. Sem acesso direto à tabela: leitura e escrita só por funções que conferem a permissão e registram quem viu.
+- **Saúde só o próprio filho altera;** o zelador altera a parte espiritual. Irmãos nunca veem a ficha uns dos outros.
+- **Motivo:** saúde e religião são dados sensíveis (LGPD art. 11): consentimento específico na própria ficha e o mínimo de pessoas com acesso.
+
+### D16. App sob medida para cada casa
+- **Escolha:** o zelador liga e desliga módulos (ex.: senhas no Candomblé, mapa numa casa que não colhe). O que está desligado some do menu e das telas para todos daquela casa; os dados não são apagados.
+- **Motivo:** cada tradição tem o seu dia a dia; tela com coisa que não se usa confunde.
+
+### D17. Registro de atividades sem dados sensíveis
+- **Escolha:** gatilhos no banco anotam quem fez o quê; ninguém edita nem apaga; fica 1 ano. Só o zelador vê. Para fichas, só "viu/alterou" e o nome dos campos, nunca os valores. Itens "só meus" (pontos e listas privadas) não entram.
+- **Motivo:** o zelador pediu acompanhar o uso, e as fichas precisam de prestação de contas; o registro não pode virar um novo vazamento.
+
 ### D11. Código aberto no GitHub
 - **Motivo:** o GitHub Pages gratuito exige repositório público. Nenhum dado dos terreiros fica no código.
 - **Revisitar:** se houver investimento, avaliar repositório privado com outra hospedagem.

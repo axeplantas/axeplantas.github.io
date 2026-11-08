@@ -8,6 +8,10 @@ import Admin from './pages/Admin'
 import Aguardando from './pages/Aguardando'
 import Calendario from './pages/Calendario'
 import Casa from './pages/Casa'
+import Configuracoes from './pages/Configuracoes'
+import Escalas from './pages/Escalas'
+import Ficha from './pages/Ficha'
+import Fichas from './pages/Fichas'
 import Entrar from './pages/Entrar'
 import Financeiro from './pages/Financeiro'
 import FolhaDetalhe from './pages/FolhaDetalhe'
@@ -23,10 +27,13 @@ import ObrigacaoDetalhe from './pages/ObrigacaoDetalhe'
 import Obrigacoes from './pages/Obrigacoes'
 import Painel from './pages/Painel'
 import Perfil from './pages/Perfil'
+import Registros from './pages/Registros'
+import Relatorios from './pages/Relatorios'
+import Senhas from './pages/Senhas'
 import SemCasa from './pages/SemCasa'
 
 export default function App() {
-  const { sessao, perfil, carregando, recuperandoSenha, sair } = useSessao()
+  const { sessao, perfil, modulos, carregando, recuperandoSenha, sair } = useSessao()
   // Link de convite aberto por quem já tem conta (entrar em mais uma casa).
   // Lido a cada renderização: o cadastro novo apaga o convite do endereço logo após usá-lo.
   const [, redesenhar] = useState(0)
@@ -84,19 +91,32 @@ export default function App() {
             </>
           ) : (
             <>
-              <Route index element={<Mapa />} />
-              <Route path="marcar" element={<NovoPonto />} />
-              <Route path="folhas" element={<Folhas />} />
-              <Route path="folhas/nova" element={<NovaFolha />} />
-              <Route path="folhas/:id" element={<FolhaDetalhe />} />
-              <Route path="obrigacoes" element={<Obrigacoes />} />
-              <Route path="obrigacoes/:id" element={<ObrigacaoDetalhe />} />
+              {/* Sem o mapa ligado, o app abre direto na Casa. */}
+              <Route index element={modulos.mapa ? <Mapa /> : <Casa />} />
+              {modulos.mapa && (
+                <>
+                  <Route path="marcar" element={<NovoPonto />} />
+                  <Route path="folhas" element={<Folhas />} />
+                  <Route path="folhas/nova" element={<NovaFolha />} />
+                  <Route path="folhas/:id" element={<FolhaDetalhe />} />
+                </>
+              )}
+              {modulos.funcoes && <Route path="obrigacoes" element={<Obrigacoes />} />}
+              {modulos.funcoes && <Route path="obrigacoes/:id" element={<ObrigacaoDetalhe />} />}
               <Route path="casa" element={<Casa />} />
-              <Route path="casa/financeiro" element={<Financeiro />} />
-              <Route path="casa/calendario" element={<Calendario />} />
-              <Route path="casa/materiais" element={<Materiais />} />
+              {modulos.financeiro && <Route path="casa/financeiro" element={<Financeiro />} />}
+              {modulos.calendario && <Route path="casa/calendario" element={<Calendario />} />}
+              {modulos.materiais && <Route path="casa/materiais" element={<Materiais />} />}
+              {modulos.escalas && <Route path="casa/escalas" element={<Escalas />} />}
+              {modulos.senhas && <Route path="casa/senhas" element={<Senhas />} />}
+              {modulos.fichas && <Route path="casa/ficha" element={<Ficha />} />}
+              {modulos.fichas && <Route path="casa/fichas" element={<Fichas />} />}
+              {modulos.fichas && <Route path="casa/fichas/:id" element={<Ficha />} />}
               <Route path="casa/membros" element={<Membros />} />
               <Route path="casa/gestao" element={<Gestao />} />
+              <Route path="casa/configuracoes" element={<Configuracoes />} />
+              <Route path="casa/relatorios" element={<Relatorios />} />
+              <Route path="casa/registros" element={<Registros />} />
             </>
           )}
           {ehValidador(perfil) && <Route path="painel" element={<Painel />} />}

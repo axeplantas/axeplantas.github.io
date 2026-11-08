@@ -146,6 +146,7 @@ class Consulta implements PromiseLike<any> {
   private contar = false
   private unico: 'single' | 'maybe' | null = null
   private limite: number | null = null
+  private inicio = 0
 
   private tabela: string
 
@@ -169,6 +170,7 @@ class Consulta implements PromiseLike<any> {
   gt(c: string, v: any) { this.filtros.push((l) => l[c] > v); return this }
   lt(c: string, v: any) { this.filtros.push((l) => l[c] < v); return this }
   limit(n: number) { this.limite = n; return this }
+  range(de: number, ate: number) { this.inicio = de; this.limite = ate - de + 1; return this }
   neq(c: string, v: any) { this.filtros.push((l) => l[c] !== v); return this }
   order(c: string) { this.ordem ??= c; return this }
   single() { this.unico = 'single'; return this }
@@ -214,7 +216,9 @@ class Consulta implements PromiseLike<any> {
       linhas = [...linhas].sort((a, b) => String(a[c]).localeCompare(String(b[c]), 'pt-BR'))
     }
 
-    const resultado = linhas.slice(0, this.limite ?? undefined).map((l) => this.juntar({ ...l }))
+    const resultado = linhas
+      .slice(this.inicio, this.limite === null ? undefined : this.inicio + this.limite)
+      .map((l) => this.juntar({ ...l }))
     if (this.unico) {
       const data = resultado[0] ?? null
       if (!data && this.unico === 'single') return { data: null, error: { message: 'Não encontrado' } }
@@ -229,6 +233,200 @@ class Consulta implements PromiseLike<any> {
     if (/terreiros(![\w]+)?\(/.test(this.selecao)) l.terreiros = banco.terreiros.find((t) => t.id === l.terreiro_id) ?? null
     if (this.selecao.includes('perfis(')) l.perfis = banco.perfis.find((p) => p.id === l.perfil_id) ?? null
     return l
+  }
+}
+
+// ---------------------------------------------------------------------
+// Ficha, escalas, funções, senhas e registros (imitação das funções do banco)
+// ---------------------------------------------------------------------
+
+const DIA = 86400000
+const iso = (deslocamentoDias: number) => new Date(Date.now() + deslocamentoDias * DIA).toISOString().slice(0, 10)
+const ok = (data: any = null) => ({ data, error: null })
+const falha = (message: string) => ({ data: null, error: { message } })
+
+Object.assign(banco, {
+  casa_config: [],
+  fichas: [
+    {
+      perfil_id: 'demo-m1', terreiro_id: T1, nome_completo: 'Ana Souza', data_nascimento: `1990-${iso(0).slice(5, 7)}-20`,
+      telefone: null, contato_emergencia: 'Marcos (irmão) 11 9xxxx-xxxx', tipo_sanguineo: 'O+', alergias: 'Dipirona, camarão',
+      condicoes_saude: 'Pressão alta', medicamentos: [{ nome: 'Losartana', dose: '50 mg', horarios: '8h', para_que: 'Pressão', continuo: true }],
+      orixa_cabeca: 'Oxum', orixa_ajunto: 'Oxalá', outros_orixas: null, nome_de_santo: 'Omi Ladê', data_iniciacao: '2015-08-10',
+      guias: null, mestres: null, entidades: null, observacoes: null, consentimento_em: new Date().toISOString(),
+      atualizado_em: new Date().toISOString(), atualizado_por: 'demo-m1',
+    },
+    {
+      perfil_id: 'demo-m2', terreiro_id: T1, nome_completo: 'Carlos Lima', data_nascimento: '1985-03-02', telefone: null,
+      contato_emergencia: null, tipo_sanguineo: null, alergias: null, condicoes_saude: null, medicamentos: [],
+      orixa_cabeca: 'Ogum', orixa_ajunto: 'Iemanjá', outros_orixas: null, nome_de_santo: null, data_iniciacao: '2010-01-15',
+      guias: 'Caboclo Sete Flechas', mestres: null, entidades: null, observacoes: null, consentimento_em: new Date().toISOString(),
+      atualizado_em: new Date().toISOString(), atualizado_por: 'demo-m2',
+    },
+  ],
+  escalas: [
+    { id: 'e1', terreiro_id: T1, titulo: 'Limpeza do barracão', descricao: 'Trazer pano e balde.', data: iso(3), hora: '09:00:00', local: 'Barracão', modo: 'vagas', vagas: 4, obrigacao_id: null, criado_por: EU, created_at: new Date().toISOString() },
+    { id: 'e2', terreiro_id: T1, titulo: 'Cozinha da festa de Ogum', descricao: null, data: iso(8), hora: '14:00:00', local: 'Cozinha', modo: 'escolhidos', vagas: null, obrigacao_id: 'o1', criado_por: EU, created_at: new Date().toISOString() },
+    { id: 'e3', terreiro_id: T1, titulo: 'Mutirão do quintal', descricao: null, data: iso(-10), hora: null, local: null, modo: 'todos', vagas: null, obrigacao_id: null, criado_por: EU, created_at: new Date().toISOString() },
+  ],
+  escala_pessoas: [
+    { escala_id: 'e1', perfil_id: 'demo-m1', terreiro_id: T1, status: 'confirmado', presenca: null, respondeu_em: new Date().toISOString() },
+    { escala_id: 'e2', perfil_id: EU, terreiro_id: T1, status: 'convocado', presenca: null, respondeu_em: null },
+    { escala_id: 'e2', perfil_id: 'demo-m2', terreiro_id: T1, status: 'confirmado', presenca: null, respondeu_em: null },
+    { escala_id: 'e3', perfil_id: EU, terreiro_id: T1, status: 'confirmado', presenca: 'presente', respondeu_em: null },
+    { escala_id: 'e3', perfil_id: 'demo-m1', terreiro_id: T1, status: 'confirmado', presenca: 'presente', respondeu_em: null },
+    { escala_id: 'e3', perfil_id: 'demo-m2', terreiro_id: T1, status: 'confirmado', presenca: 'faltou', respondeu_em: null },
+  ],
+  item_contribuicoes: [
+    { id: 'c1', item_id: 'i2', obrigacao_id: 'o1', terreiro_id: T1, perfil_id: 'demo-m1', quantidade: 2, status: 'combinado', atribuido_por: null, entregue_em: null, created_at: new Date().toISOString() },
+    { id: 'c2', item_id: 'i6', obrigacao_id: 'o1', terreiro_id: T1, perfil_id: 'demo-m2', quantidade: 1, status: 'entregue', atribuido_por: EU, entregue_em: new Date().toISOString(), created_at: new Date().toISOString() },
+  ],
+  senhas: [],
+  registros: [
+    { id: 1, terreiro_id: T1, perfil_id: 'demo-m1', acao: 'app.aberto', alvo_perfil: null, descricao: 'Abriu o app', detalhe: null, created_at: new Date(Date.now() - 3600000).toISOString() },
+    { id: 2, terreiro_id: T1, perfil_id: 'demo-m1', acao: 'ficha.editada', alvo_perfil: 'demo-m1', descricao: null, detalhe: { campos: ['alergias', 'medicamentos'] }, created_at: new Date(Date.now() - 3000000).toISOString() },
+    { id: 3, terreiro_id: T1, perfil_id: 'demo-m2', acao: 'item_contribuicoes.update', alvo_perfil: 'demo-m2', descricao: null, detalhe: { status: 'entregue', campos: ['status'] }, created_at: new Date(Date.now() - 2000000).toISOString() },
+    { id: 4, terreiro_id: T1, perfil_id: 'demo-m1', acao: 'escala_pessoas.insert', alvo_perfil: 'demo-m1', descricao: null, detalhe: { status: 'confirmado' }, created_at: new Date(Date.now() - DIA).toISOString() },
+    { id: 5, terreiro_id: T1, perfil_id: EU, acao: 'escalas.insert', alvo_perfil: null, descricao: 'Limpeza do barracão', detalhe: null, created_at: new Date(Date.now() - DIA - 5000).toISOString() },
+  ],
+})
+banco.obrigacoes[0].filho_id = 'demo-m1'
+banco.obrigacao_itens.push(
+  { id: 'i6', obrigacao_id: 'o1', folha_id: null, nome: 'Galo carijó', categoria: 'animal', quantidade_total: 1, unidade: 'cabeça', quantidade: '1 cabeça', aberto: false, colhida: false, created_at: new Date().toISOString() },
+  { id: 'i7', obrigacao_id: 'o1', folha_id: null, nome: 'Milho branco', categoria: 'semente', quantidade_total: 3, unidade: 'kg', quantidade: '3 kg', aberto: true, colhida: false, created_at: new Date().toISOString() },
+  { id: 'i8', obrigacao_id: 'o1', folha_id: null, nome: 'Vela branca de 7 dias', categoria: 'vela', quantidade_total: 6, unidade: 'unidade', quantidade: '6 unidade', aberto: true, colhida: false, created_at: new Date().toISOString() },
+)
+banco.obrigacao_itens.find((i) => i.id === 'i2')!.quantidade_total = 3
+banco.obrigacao_itens.find((i) => i.id === 'i2')!.unidade = 'galho'
+
+function rpcNovas(nome: string, a: any): { data: any; error: any } | null {
+  const irmaos = () => banco.membros.filter((m) => m.terreiro_id === T1 && m.aprovado)
+    .map((m) => ({ perfil_id: m.perfil_id, apelido: banco.perfis.find((p) => p.id === m.perfil_id)?.apelido ?? '?', papel: m.papel }))
+    .sort((x, y) => x.apelido.localeCompare(y.apelido, 'pt-BR'))
+  const hoje = iso(0)
+  switch (nome) {
+    case 'registrar_acesso': return ok()
+    case 'apelidos_da_casa': return ok(irmaos())
+    case 'configurar_modulos': {
+      banco.casa_config = [{ terreiro_id: a.p_terreiro, modulos: a.p_modulos }]
+      return ok()
+    }
+    case 'configurar_lembretes': {
+      const f = banco.financeiro_casa.find((x) => x.terreiro_id === a.p_terreiro)
+      const dados = { lembrete_dias: a.p_dias, lembrar_atrasados: a.p_atrasados, atraso_intervalo: a.p_intervalo }
+      if (f) Object.assign(f, dados)
+      else banco.financeiro_casa.push({ terreiro_id: a.p_terreiro, cobra_mensalidade: false, valor_padrao: 0, dia_vencimento: 10, ...dados })
+      return ok()
+    }
+    case 'definir_permissoes': {
+      const m = banco.membros.find((x) => x.perfil_id === a.p_usuario && x.terreiro_id === a.p_terreiro)
+      if (m) m.permissoes = a.p_permissoes
+      return ok()
+    }
+    case 'abrir_ficha': return ok(banco.fichas.find((f) => f.perfil_id === a.p_perfil && f.terreiro_id === a.p_terreiro) ?? null)
+    case 'salvar_ficha': {
+      let f = banco.fichas.find((x) => x.perfil_id === a.p_perfil && x.terreiro_id === a.p_terreiro)
+      if (!f) {
+        if (a.p_perfil === EU && !a.p_consentimento) return falha('Para salvar a ficha, marque que você concorda em guardar estes dados')
+        f = { perfil_id: a.p_perfil, terreiro_id: a.p_terreiro, medicamentos: [], consentimento_em: new Date().toISOString() }
+        banco.fichas.push(f)
+      }
+      Object.assign(f, a.p_dados, { atualizado_em: new Date().toISOString(), atualizado_por: EU })
+      return ok()
+    }
+    case 'copiar_minha_ficha': return falha('Na demonstração não há ficha em outra casa.')
+    case 'listar_fichas':
+      return ok(irmaos().map((i) => {
+        const f = banco.fichas.find((x) => x.perfil_id === i.perfil_id && x.terreiro_id === T1)
+        const meds = (f?.medicamentos ?? []) as any[]
+        return {
+          perfil_id: i.perfil_id, apelido: i.apelido, preenchida: Boolean(f), data_nascimento: f?.data_nascimento ?? null,
+          orixa_cabeca: f?.orixa_cabeca ?? null, orixa_ajunto: f?.orixa_ajunto ?? null, nome_de_santo: f?.nome_de_santo ?? null,
+          data_iniciacao: f?.data_iniciacao ?? null, alergias: f?.alergias ?? null, condicoes_saude: f?.condicoes_saude ?? null,
+          remedios_continuos: meds.filter((m) => m.continuo).length, total_remedios: meds.length, atualizado_em: f?.atualizado_em ?? null,
+        }
+      }))
+    case 'criar_escala': {
+      const id = crypto.randomUUID()
+      banco.escalas.push({ id, terreiro_id: a.p_terreiro, titulo: a.p_titulo, descricao: a.p_descricao || null, data: a.p_data, hora: a.p_hora,
+        local: a.p_local || null, modo: a.p_modo, vagas: a.p_vagas, obrigacao_id: a.p_obrigacao, criado_por: EU, created_at: new Date().toISOString() })
+      const pessoas = a.p_modo === 'todos' ? irmaos().map((i) => i.perfil_id) : a.p_modo === 'escolhidos' ? a.p_pessoas : []
+      pessoas.forEach((p: string) => banco.escala_pessoas.push({ escala_id: id, perfil_id: p, terreiro_id: a.p_terreiro, status: 'convocado', presenca: null, respondeu_em: null }))
+      return ok(id)
+    }
+    case 'responder_escala': {
+      const e = banco.escalas.find((x) => x.id === a.p_escala)!
+      const minha = banco.escala_pessoas.find((x) => x.escala_id === a.p_escala && x.perfil_id === EU)
+      if (e.modo === 'vagas') {
+        if (!a.p_vou) {
+          banco.escala_pessoas = banco.escala_pessoas.filter((x) => x !== minha)
+          return ok('saiu')
+        }
+        const confirmados = banco.escala_pessoas.filter((x) => x.escala_id === e.id && x.status === 'confirmado').length
+        if (confirmados >= e.vagas) return falha('As vagas já foram preenchidas')
+        if (minha) minha.status = 'confirmado'
+        else banco.escala_pessoas.push({ escala_id: e.id, perfil_id: EU, terreiro_id: e.terreiro_id, status: 'confirmado', presenca: null, respondeu_em: new Date().toISOString() })
+        return ok('confirmado')
+      }
+      if (!minha) return falha('Você não foi convocado(a) para esta escala')
+      minha.status = a.p_vou ? 'confirmado' : 'recusou'
+      return ok(minha.status)
+    }
+    case 'marcar_presenca': {
+      const p = banco.escala_pessoas.find((x) => x.escala_id === a.p_escala && x.perfil_id === a.p_perfil)
+      if (p) p.presenca = a.p_presenca
+      return ok()
+    }
+    case 'apagar_escala': {
+      banco.escalas = banco.escalas.filter((x) => x.id !== a.p_escala)
+      return ok()
+    }
+    case 'contribuir_item':
+    case 'atribuir_item': {
+      const item = banco.obrigacao_itens.find((x) => x.id === a.p_item)!
+      const quem = nome === 'contribuir_item' ? EU : a.p_perfil
+      const existente = banco.item_contribuicoes.find((x) => x.item_id === a.p_item && x.perfil_id === quem)
+      if (existente) existente.quantidade = a.p_quantidade
+      else banco.item_contribuicoes.push({ id: crypto.randomUUID(), item_id: a.p_item, obrigacao_id: item.obrigacao_id, terreiro_id: T1,
+        perfil_id: quem, quantidade: a.p_quantidade, status: 'combinado', atribuido_por: nome === 'atribuir_item' ? EU : null,
+        entregue_em: null, created_at: new Date().toISOString() })
+      return ok()
+    }
+    case 'marcar_entrega': {
+      const c = banco.item_contribuicoes.find((x) => x.id === a.p_contribuicao)
+      if (c) c.status = a.p_entregue ? 'entregue' : 'combinado'
+      return ok()
+    }
+    case 'desistir_item': {
+      banco.item_contribuicoes = banco.item_contribuicoes.filter((x) => x.id !== a.p_contribuicao)
+      return ok()
+    }
+    case 'emitir_senha': {
+      const numero = banco.senhas.filter((s) => s.data === hoje).length + 1
+      banco.senhas.push({ id: crypto.randomUUID(), terreiro_id: a.p_terreiro, data: hoje, numero, nome: String(a.p_nome).trim().split(' ')[0],
+        status: 'aguardando', chamada_em: null, created_at: new Date().toISOString() })
+      return ok(numero)
+    }
+    case 'chamar_proxima_senha': {
+      const s = banco.senhas.filter((x) => x.data === hoje && x.status === 'aguardando').sort((x, y) => x.numero - y.numero)[0]
+      if (!s) return ok(null)
+      Object.assign(s, { status: 'chamada', chamada_em: new Date().toISOString() })
+      return ok({ id: s.id, numero: s.numero, nome: s.nome })
+    }
+    case 'marcar_senha': {
+      const s = banco.senhas.find((x) => x.id === a.p_senha)
+      if (s) Object.assign(s, { status: a.p_status, chamada_em: a.p_status === 'chamada' ? new Date().toISOString() : s.chamada_em })
+      return ok()
+    }
+    case 'uso_do_app':
+      return ok(irmaos().map((i, n) => ({
+        perfil_id: i.perfil_id,
+        ultimo_acesso: n === 1 ? new Date(Date.now() - 45 * DIA).toISOString() : new Date(Date.now() - n * 3600000).toISOString(),
+        acessos_30d: n === 1 ? 0 : 12 - n * 3, acoes_30d: n === 1 ? 0 : 20 - n * 4,
+      })))
+    case 'resumo_senhas':
+      return ok([{ data: iso(-7), total: 34, atendidas: 30, ausentes: 4 }, { data: iso(-14), total: 28, atendidas: 27, ausentes: 1 }])
+    default: return null
   }
 }
 
@@ -298,6 +496,8 @@ export function criarClienteDemo(): any {
         alert('Demonstração: esta ação funciona no app de verdade. Aqui nada é salvo.')
         return { data: null, error: null }
       }
+      const novo = rpcNovas(nome, args ?? {})
+      if (novo) return novo
       const p = banco.perfis.find((x) => x.id === args.p_usuario)
       if (!p) return { data: null, error: null }
       if (nome === 'gerenciar_membro') Object.assign(p, { aprovado: args.p_aprovado, papel: args.p_papel })
