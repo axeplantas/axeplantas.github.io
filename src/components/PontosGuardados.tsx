@@ -1,3 +1,4 @@
+import { CloudUpload } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { avisar } from '../lib/avisos'
 import { descartarPonto, enviarGuardados, pontosGuardados, type PontoGuardado } from '../lib/fila'
@@ -60,7 +61,7 @@ export default function PontosGuardados() {
   return (
     <div className="guardados">
       <button className="guardados-resumo" onClick={() => setAberto((a) => !a)}>
-        📦 {guardados.length} ponto(s) guardado(s) no celular
+        <CloudUpload size={18} aria-hidden /> {guardados.length} ponto(s) guardado(s) no celular
         <span className="sutil">{online ? (enviando ? ' · enviando…' : ' · toque para ver') : ' · sem internet'}</span>
       </button>
       {aberto && (

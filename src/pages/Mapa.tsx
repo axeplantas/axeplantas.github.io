@@ -1,3 +1,4 @@
+import { TriangleAlert, X } from 'lucide-react'
 import type { LatLngBoundsExpression, LatLngExpression, Map as MapaLeaflet } from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Circle, CircleMarker, MapContainer, Popup } from 'react-leaflet'
@@ -118,7 +119,7 @@ export default function Mapa() {
       <div className="mapa-filtro">
         {filtroLista.length > 0 ? (
           <button className="filtro-ativo" onClick={() => setParams({})}>
-            Folhas da obrigação ({visiveis.length} pontos) ✕
+            Folhas da obrigação ({visiveis.length} pontos) <X size={16} aria-hidden />
           </button>
         ) : (
           <select
@@ -181,7 +182,7 @@ export default function Mapa() {
               <div className="popup">
                 <strong className="popup-titulo">{p.folhas?.nome_popular ?? 'Folha em validação'}</strong>
                 {p.folhas?.nome_ritual && <div className="sutil">{p.folhas.nome_ritual}</div>}
-                {p.folhas?.toxica && <div className="alerta-toxica">⚠️ Tóxica{p.folhas.alerta ? `: ${p.folhas.alerta}` : ''}</div>}
+                {p.folhas?.toxica && <div className="alerta-toxica"><TriangleAlert size={16} aria-hidden /> Tóxica{p.folhas.alerta ? `: ${p.folhas.alerta}` : ''}</div>}
                 {p.status === 'pendente' && <div className="etiqueta">Aguardando validação</div>}
                 <div className="sutil">Visível para: {ROTULO_VISIBILIDADE[p.visibilidade]}</div>
                 <Galeria caminhos={fotosDoPonto(p)} nome={p.folhas?.nome_popular ?? 'Folha'} />

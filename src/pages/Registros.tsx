@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { nomeDe, useIrmaos } from '../lib/casa'
+import IconeArea from '../components/IconeArea'
 import { areaDe, descrever, ROTULO_AREA, type Area } from '../lib/registros'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { supabase } from '../lib/supabase'
 import type { Registro } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 const POR_PAGINA = 300
 
 /** Zelador: o que cada filho fez no app, do mais recente para o mais antigo. */
 export default function Registros() {
   const { casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const irmaos = useIrmaos(terreiro)
   const [registros, setRegistros] = useState<Registro[] | null>(null)
@@ -54,8 +54,7 @@ export default function Registros() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa/gestao')}>← Gestão da casa</button>
-      <h1>Registro de atividades</h1>
+      <Topo titulo="Registro de atividades" voltar={'/casa/gestao'} />
       <p className="sutil">
         Tudo o que é feito no app desta casa: quem fez, o quê e quando. Ninguém consegue apagar. Dados de saúde não
         aparecem aqui, só que a ficha foi vista ou alterada.
@@ -91,7 +90,7 @@ export default function Registros() {
                 <span className="cresce">
                   <strong>{nome(r.perfil_id)}</strong> {descrever(r, nome)}
                 </span>
-                <span className="sutil" aria-hidden>{ROTULO_AREA[areaDe(r)].split(' ')[0]}</span>
+                <IconeArea area={areaDe(r)} />
               </li>
             ))}
           </ul>

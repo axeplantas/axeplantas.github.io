@@ -1,15 +1,16 @@
+import { ChartColumnBig, LockKeyhole, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { idade, type ResumoFicha } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 type Filtro = 'todos' | 'alergia' | 'remedio' | 'sem'
 
 /** Zelador e autorizados: as fichas de todos os filhos da casa. */
 export default function Fichas() {
   const { casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const [fichas, setFichas] = useState<ResumoFicha[] | null>(null)
   const [busca, setBusca] = useState('')
@@ -41,9 +42,8 @@ export default function Fichas() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa/gestao')}>← Gestão da casa</button>
-      <h1>Fichas dos filhos</h1>
-      <p className="aviso-pequeno">🔒 Dados de saúde e religião: só você e quem você autorizar veem. Cada ficha aberta fica registrada.</p>
+      <Topo titulo="Fichas dos filhos" voltar={'/casa/gestao'} />
+      <p className="nota-privacidade"><LockKeyhole size={18} aria-hidden /><span>Dados de saúde e religião: só você e quem você autorizar veem. Cada ficha aberta fica registrada.</span></p>
 
       {fichas && (
         <div className="indicadores">
@@ -61,7 +61,7 @@ export default function Fichas() {
             <span>tomam remédio</span>
           </button>
           <Link to="/casa/relatorios#fichas" className="indicador">
-            <span className="indicador-numero pequeno">📊</span>
+            <span className="indicador-numero pequeno"><ChartColumnBig size={24} aria-hidden /></span>
             <span>orixás, aniversários e mais</span>
           </Link>
         </div>
@@ -70,7 +70,7 @@ export default function Fichas() {
       <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Procurar filho pelo nome" />
       {filtro !== 'todos' && (
         <button className="filtro-ativo" onClick={() => setFiltro('todos')}>
-          {filtro === 'alergia' ? 'Só quem tem alergia' : filtro === 'remedio' ? 'Só quem toma remédio' : 'Só quem não preencheu'} ✕
+          {filtro === 'alergia' ? 'Só quem tem alergia' : filtro === 'remedio' ? 'Só quem toma remédio' : 'Só quem não preencheu'} <X size={16} aria-hidden />
         </button>
       )}
       {erro && <p className="erro">{erro}</p>}
@@ -88,9 +88,9 @@ export default function Fichas() {
                     : 'Ainda não preencheu'}
                 </div>
                 <div className="etiquetas">
-                  {f.alergias && <span className="etiqueta situacao-recusado">⚠️ Alergia: {f.alergias.slice(0, 40)}</span>}
-                  {f.remedios_continuos > 0 && <span className="etiqueta situacao-informado">💊 {f.remedios_continuos} de uso contínuo</span>}
-                  {f.condicoes_saude && <span className="etiqueta situacao-aberto">🩺 {f.condicoes_saude.slice(0, 40)}</span>}
+                  {f.alergias && <span className="etiqueta situacao-recusado">Alergia: {f.alergias.slice(0, 40)}</span>}
+                  {f.remedios_continuos > 0 && <span className="etiqueta situacao-informado">{f.remedios_continuos} remédio(s) contínuo(s)</span>}
+                  {f.condicoes_saude && <span className="etiqueta situacao-aberto">{f.condicoes_saude.slice(0, 40)}</span>}
                 </div>
               </div>
               <span aria-hidden>›</span>

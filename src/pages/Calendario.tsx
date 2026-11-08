@@ -1,11 +1,12 @@
+import { MapPin } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { avisar } from '../lib/avisos'
 import { feriadosNacionais, type Feriado } from '../lib/feriados'
 import { ehEquipe, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { formatarDataCurta, ROTULO_EVENTO, type Evento, type TipoEvento } from '../lib/tipos'
 import { confirmar } from '../lib/dialogo'
+import Topo from '../components/Topo'
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 const SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
@@ -45,7 +46,6 @@ function baixarNaAgenda(e: Evento, casa: string) {
 
 export default function Calendario() {
   const { casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const podeEditar = ehEquipe(casaAtiva)
   const hoje = iso(new Date())
@@ -117,7 +117,7 @@ export default function Calendario() {
           {formatarDataCurta(e.data)} ({diaDaSemana(e.data)})
           {e.hora ? ` · ${e.hora.slice(0, 5)}${e.hora_fim ? ` às ${e.hora_fim.slice(0, 5)}` : ''}` : ' · dia inteiro'}
         </div>
-        {e.local && <div className="sutil">📍 {e.local}</div>}
+        {e.local && <div className="sutil icone-texto"><MapPin size={14} aria-hidden /> {e.local}</div>}
         {e.descricao && <p className="texto-pre">{e.descricao}</p>}
         <div className="linha">
           <button className="link" onClick={() => baixarNaAgenda(e, casa)}>Adicionar à minha agenda</button>
@@ -130,11 +130,7 @@ export default function Calendario() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
-      <div className="cabecalho">
-        <h1>Calendário</h1>
-        {podeEditar && !editando && <button className="botao" onClick={() => setEditando('novo')}>+ Evento</button>}
-      </div>
+      <Topo titulo="Calendário" voltar={'/casa'} acao={<>{podeEditar && !editando && <button className="botao" onClick={() => setEditando('novo')}>+ Evento</button>}</>} />
       <p className="sutil">{casa}</p>
 
       {editando && (

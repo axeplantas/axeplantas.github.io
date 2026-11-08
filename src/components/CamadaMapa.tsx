@@ -1,3 +1,4 @@
+import { Map as IconeMapa, Satellite } from 'lucide-react'
 import { useState } from 'react'
 import { TileLayer } from 'react-leaflet'
 
@@ -51,7 +52,7 @@ export function BotaoCamada({ tipo, aoAlternar, className = '' }: { tipo: TipoCa
   return (
     <button type="button" className={`botao-camada ${className}`} onClick={aoAlternar}
       aria-label={tipo === 'ruas' ? 'Ver foto de satélite' : 'Ver mapa de ruas'}>
-      {tipo === 'ruas' ? '🛰️ Satélite' : '🗺️ Ruas'}
+      {tipo === 'ruas' ? <><Satellite size={16} aria-hidden /> Satélite</> : <><IconeMapa size={16} aria-hidden /> Ruas</>}
     </button>
   )
 }

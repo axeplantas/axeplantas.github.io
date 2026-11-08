@@ -1,9 +1,12 @@
+import { ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ehAdmin, useSessao } from '../lib/sessao'
 import AtivarNotificacoes from '../components/AtivarNotificacoes'
 import CampoSenha from '../components/CampoSenha'
+import Topo from '../components/Topo'
 import { VERSAO } from '../lib/atualizacao'
+import { aplicarTema, temaEscolhido, type Tema } from '../lib/tema'
 import { avisar } from '../lib/avisos'
 import { BUCKET_FOTOS, mensagemDeErro, supabase } from '../lib/supabase'
 import { ROTULO_PAPEL } from '../lib/tipos'
@@ -26,7 +29,7 @@ export default function Perfil() {
 
   return (
     <div className="pagina">
-      <h1>Perfil</h1>
+      <Topo titulo="Perfil" />
       <div className="cartao">
         <div><strong>{perfil?.terreiros?.nome ?? 'Sem terreiro'}</strong></div>
         <div className="sutil">{perfil?.terreiros?.nacao}</div>
@@ -34,7 +37,7 @@ export default function Perfil() {
       </div>
 
       {ehAdmin(perfil) && (
-        <Link to="/admin" className="botao bloco">⚙️ Administração (terreiros e convites)</Link>
+        <Link to="/admin" className="botao bloco"><ShieldCheck size={18} aria-hidden /> Administração (terreiros e convites)</Link>
       )}
 
       <form className="formulario" onSubmit={salvar}>
@@ -47,6 +50,8 @@ export default function Perfil() {
       </form>
 
       <AtivarNotificacoes motivo="Receba avisos no celular: quando seu acesso ou seus pontos forem aprovados e, se você valida, quando houver algo para conferir." />
+
+      <Aparencia />
 
       <TrocarSenha />
 
@@ -174,5 +179,24 @@ function ExcluirConta() {
         <button type="button" className="link" onClick={() => setAberto(false)}>Cancelar</button>
       </div>
     </form>
+  )
+}
+
+function Aparencia() {
+  const [tema, setTema] = useState<Tema>(temaEscolhido)
+  const opcoes: [Tema, string][] = [['auto', 'Automático'], ['claro', 'Claro'], ['escuro', 'Escuro']]
+  return (
+    <section className="cartao">
+      <h2>Aparência</h2>
+      <div className="escolha-tema" role="radiogroup" aria-label="Tema do app">
+        {opcoes.map(([valor, nome]) => (
+          <button key={valor} type="button" role="radio" aria-checked={tema === valor} className={`chip ${tema === valor ? 'ativo' : ''}`}
+            onClick={() => { aplicarTema(valor); setTema(valor) }}>
+            {nome}
+          </button>
+        ))}
+      </div>
+      <p className="sutil">No automático, o app acompanha o modo claro ou escuro do celular.</p>
+    </section>
   )
 }

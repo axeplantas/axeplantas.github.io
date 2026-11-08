@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { Folha } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 function semAcento(texto: string): string {
   return texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
@@ -34,10 +35,7 @@ export default function Folhas() {
 
   return (
     <div className="pagina">
-      <div className="cabecalho">
-        <h1>Folhas</h1>
-        <Link to="/folhas/nova" className="botao">+ Nova</Link>
-      </div>
+      <Topo titulo="Folhas" acao={<><Link to="/folhas/nova" className="botao">+ Nova</Link></>} />
       <input type="search" placeholder="Buscar por qualquer nome…" value={busca} onChange={(e) => setBusca(e.target.value)} />
 
       {carregando && <p className="sutil">Carregando…</p>}

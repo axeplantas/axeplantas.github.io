@@ -1,5 +1,7 @@
+import { BadgeCheck, Brush, CalendarDays, ChevronRight, ClipboardList, FolderLock, Package, Settings2, Stethoscope, Ticket, Wallet } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import Topo from '../components/Topo'
 import TrocarCasa from '../components/TrocarCasa'
 import { diaMes, hojeIso } from '../lib/casa'
 import { feriadosNacionais } from '../lib/feriados'
@@ -66,25 +68,25 @@ export default function Casa() {
 
   return (
     <div className="pagina">
-      <h1>Casa</h1>
+      <Topo titulo="Casa" />
       <TrocarCasa />
 
       {ehZelador(casaAtiva) && (
         <Link to="/casa/gestao" className="cartao-gestao">
-          <span className="cartao-casa-icone">⚙️</span>
+          <span className="tile" aria-hidden><Settings2 size={22} /></span>
           <span className="cresce">
             <strong>Gestão da casa</strong>
             <span className="sutil">Filhos, relatórios, registro de atividades e configurações</span>
           </span>
           {pendencias + paraConferir > 0 && <b className="selo-cartao">{pendencias + paraConferir}</b>}
-          <span aria-hidden>›</span>
+          <ChevronRight size={22} />
         </Link>
       )}
 
       <div className="grade-casa">
         {modulos.calendario && (
           <Link to="/casa/calendario" className="cartao-casa">
-            <span className="cartao-casa-icone">📅</span>
+            <span className="tile" aria-hidden><CalendarDays size={22} /></span>
             <strong>Calendário</strong>
             <span className="sutil">
               {proximo
@@ -98,7 +100,7 @@ export default function Casa() {
 
         {modulos.escalas && (
           <Link to="/casa/escalas" className="cartao-casa">
-            <span className="cartao-casa-icone">🧹</span>
+            <span className="tile" aria-hidden><Brush size={22} /></span>
             <strong>Escalas</strong>
             <span className="sutil">
               {escala.responder > 0
@@ -111,7 +113,7 @@ export default function Casa() {
 
         {modulos.financeiro && (
           <Link to="/casa/financeiro" className="cartao-casa">
-            <span className="cartao-casa-icone">💰</span>
+            <span className="tile" aria-hidden><Wallet size={22} /></span>
             <strong>Financeiro</strong>
             <span className="sutil">
               {ehGestorFinanceiro(casaAtiva) && paraConferir > 0
@@ -124,7 +126,7 @@ export default function Casa() {
 
         {modulos.funcoes && (
           <Link to="/obrigacoes" className="cartao-casa">
-            <span className="cartao-casa-icone">📋</span>
+            <span className="tile" aria-hidden><ClipboardList size={22} /></span>
             <strong>Funções e obrigações</strong>
             <span className="sutil">O que é preciso e quem leva</span>
           </Link>
@@ -132,16 +134,16 @@ export default function Casa() {
 
         {modulos.fichas && (
           <Link to="/casa/ficha" className="cartao-casa">
-            <span className="cartao-casa-icone">🩺</span>
+            <span className="tile" aria-hidden><Stethoscope size={22} /></span>
             <strong>Minha ficha</strong>
             <span className="sutil">{fichaVazia ? 'Preencha: alergias, remédios, orixás' : 'Saúde, orixás e guias'}</span>
-            {fichaVazia && <b className="selo-cartao">!</b>}
+            {fichaVazia && <b className="selo-cartao" aria-label="Falta preencher">!</b>}
           </Link>
         )}
 
         {modulos.senhas && temPermissao(casaAtiva, 'senhas') && (
           <Link to="/casa/senhas" className="cartao-casa">
-            <span className="cartao-casa-icone">🎟️</span>
+            <span className="tile" aria-hidden><Ticket size={22} /></span>
             <strong>Senhas da gira</strong>
             <span className="sutil">Entregar e chamar na ordem</span>
           </Link>
@@ -149,7 +151,7 @@ export default function Casa() {
 
         {modulos.fichas && !ehZelador(casaAtiva) && temPermissao(casaAtiva, 'fichas') && (
           <Link to="/casa/fichas" className="cartao-casa">
-            <span className="cartao-casa-icone">🗂️</span>
+            <span className="tile" aria-hidden><FolderLock size={22} /></span>
             <strong>Fichas dos filhos</strong>
             <span className="sutil">Você tem acesso às fichas</span>
           </Link>
@@ -157,7 +159,7 @@ export default function Casa() {
 
         {modulos.materiais && verMateriais && (
           <Link to="/casa/materiais" className="cartao-casa">
-            <span className="cartao-casa-icone">📦</span>
+            <span className="tile" aria-hidden><Package size={22} /></span>
             <strong>Materiais</strong>
             <span className="sutil">Estoque da casa</span>
           </Link>
@@ -165,7 +167,7 @@ export default function Casa() {
 
         {modulos.mapa && ehValidador(perfil) && (
           <Link to="/painel" className="cartao-casa">
-            <span className="cartao-casa-icone">✔️</span>
+            <span className="tile" aria-hidden><BadgeCheck size={22} /></span>
             <strong>Validar</strong>
             <span className="sutil">{pendencias > 0 ? `${pendencias} esperando você` : 'Tudo em dia'}</span>
             {pendencias > 0 && <b className="selo-cartao">{pendencias}</b>}

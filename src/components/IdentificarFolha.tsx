@@ -109,7 +109,7 @@ export default function IdentificarFolha({ fotos, folhas, aoEscolher }: {
       <div className="identificar">
         {navigator.onLine ? (
           <button type="button" className="botao bloco" onClick={identificar} disabled={buscando}>
-            {buscando ? 'Identificando…' : fotos.length > 1 ? `🔍 Identificar usando as ${fotos.length} fotos` : '🔍 Identificar a planta pela foto'}
+            {buscando ? 'Identificando…' : fotos.length > 1 ? `Identificar usando as ${fotos.length} fotos` : 'Identificar a planta pela foto'}
           </button>
         ) : (
           <p className="aviso-pequeno">Sem internet: a identificação pela foto fica para depois. Escolha a folha pelo nome abaixo.</p>

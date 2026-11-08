@@ -3,16 +3,16 @@ import type { Registro } from './tipos'
 export type Area = 'acesso' | 'fichas' | 'financeiro' | 'funcoes' | 'escalas' | 'calendario' | 'mapa' | 'materiais' | 'filhos' | 'config'
 
 export const ROTULO_AREA: Record<Area, string> = {
-  acesso: '📱 Acessos ao app',
-  fichas: '🩺 Fichas',
-  financeiro: '💰 Financeiro',
-  funcoes: '📋 Funções e obrigações',
-  escalas: '🧹 Escalas',
-  calendario: '📅 Calendário',
-  mapa: '🗺️ Mapa',
-  materiais: '📦 Materiais',
-  filhos: '👥 Filhos e funções',
-  config: '⚙️ Configurações',
+  acesso: 'Acessos ao app',
+  fichas: 'Fichas',
+  financeiro: 'Financeiro',
+  funcoes: 'Funções e obrigações',
+  escalas: 'Escalas',
+  calendario: 'Calendário',
+  mapa: 'Mapa',
+  materiais: 'Materiais',
+  filhos: 'Filhos e funções',
+  config: 'Configurações',
 }
 
 const AREA_DA_TABELA: Record<string, Area> = {

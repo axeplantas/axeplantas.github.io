@@ -5,6 +5,7 @@ import { ehValidador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { semAcento } from '../lib/texto'
 import type { Folha } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 type Existente = Pick<Folha, 'id' | 'nome_popular' | 'outros_nomes' | 'nome_cientifico'>
 
@@ -67,8 +68,7 @@ export default function NovaFolha() {
 
   return (
     <form className="pagina formulario" onSubmit={salvar}>
-      <button type="button" className="link" onClick={() => navegar(-1)}>← Voltar</button>
-      <h1>Nova folha</h1>
+      <Topo titulo="Nova folha" voltar={-1} />
       {!ehValidador(perfil) && (
         <p className="aviso">A folha aparece para todos depois que um validador do seu terreiro aprovar.</p>
       )}

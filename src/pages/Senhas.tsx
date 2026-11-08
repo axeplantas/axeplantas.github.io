@@ -1,10 +1,11 @@
+import { Check, DoorOpen, Megaphone, MonitorUp, Ticket, UserX } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { avisar } from '../lib/avisos'
 import { hojeIso } from '../lib/casa'
 import { temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import type { Senha } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 const ROTULO: Record<Senha['status'], string> = {
   aguardando: 'Aguardando',
@@ -18,7 +19,6 @@ const doisDigitos = (n: number) => String(n).padStart(2, '0')
 /** Senhas da gira: na porta, anota o nome e entrega o número; depois chama na ordem. */
 export default function Senhas() {
   const { casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const [aba, setAba] = useState<'porta' | 'chamar'>('porta')
   const [senhas, setSenhas] = useState<Senha[]>([])
@@ -59,13 +59,12 @@ export default function Senhas() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
-      <h1>Senhas da gira</h1>
+      <Topo titulo="Senhas da gira" voltar={'/casa'} />
       <p className="sutil">Hoje, {new Date().toLocaleDateString('pt-BR')} · {senhas.length} senha(s) entregue(s) · {aguardando.length} aguardando</p>
 
       <div className="abas">
-        <button className={aba === 'porta' ? 'ativa' : ''} onClick={() => setAba('porta')}>🚪 Na porta</button>
-        <button className={aba === 'chamar' ? 'ativa' : ''} onClick={() => setAba('chamar')}>📣 Chamar</button>
+        <button className={aba === 'porta' ? 'ativa' : ''} onClick={() => setAba('porta')}><DoorOpen size={18} aria-hidden /> Na porta</button>
+        <button className={aba === 'chamar' ? 'ativa' : ''} onClick={() => setAba('chamar')}><Megaphone size={18} aria-hidden /> Chamar</button>
       </div>
 
       {aba === 'porta' ? (
@@ -132,7 +131,7 @@ function Porta({ terreiro, aoEmitir }: { terreiro: string; aoEmitir: () => Promi
           <input ref={campo} value={nome} onChange={(e) => setNome(e.target.value)} required maxLength={40}
             autoCapitalize="words" autoComplete="off" placeholder="Ex.: Maria" />
         </label>
-        <button className="primario bloco" disabled={enviando || !nome.trim()}>{enviando ? '…' : '🎟️ Dar a próxima senha'}</button>
+        <button className="primario bloco" disabled={enviando || !nome.trim()}>{enviando ? '…' : <><Ticket size={20} aria-hidden /> Dar a próxima senha</>}</button>
       </form>
     </div>
   )
@@ -165,15 +164,15 @@ function Chamar({ terreiro, atual, aguardando, aoMudar, aoTelaCheia }: {
       <span className="chamada-numero">{atual ? doisDigitos(atual.numero) : '--'}</span>
       <span className="chamada-nome">{atual?.nome ?? (aguardando ? 'Toque em “Chamar próxima”' : 'Ninguém aguardando')}</span>
       <button className="primario bloco grande" onClick={proxima} disabled={!aguardando}>
-        📣 Chamar próxima {aguardando ? `(${aguardando} aguardando)` : ''}
+        <Megaphone size={20} aria-hidden /> Chamar próxima {aguardando ? `(${aguardando} aguardando)` : ''}
       </button>
       {atual && (
         <div className="linha">
-          <button className="botao cresce" onClick={() => marcar('atendida')}>✅ Atendida</button>
-          <button className="botao cresce" onClick={() => marcar('ausente')}>🚶 Não veio</button>
+          <button className="botao cresce" onClick={() => marcar('atendida')}><Check size={18} aria-hidden /> Atendida</button>
+          <button className="botao cresce" onClick={() => marcar('ausente')}><UserX size={18} aria-hidden /> Não veio</button>
         </div>
       )}
-      <button className="link" onClick={aoTelaCheia}>📺 Mostrar em tela grande</button>
+      <button className="link" onClick={aoTelaCheia}><MonitorUp size={16} aria-hidden /> Mostrar em tela grande</button>
     </div>
   )
 }

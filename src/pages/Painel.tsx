@@ -1,3 +1,4 @@
+import { CircleCheck, Users } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AtivarNotificacoes from '../components/AtivarNotificacoes'
@@ -8,6 +9,7 @@ import { ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { fotosDoPonto, ROTULO_VISIBILIDADE, type Folha, type MembroDaCasa, type Ponto } from '../lib/tipos'
 import { confirmar } from '../lib/dialogo'
+import Topo from '../components/Topo'
 
 export default function Painel() {
   const { perfil, casaAtiva } = useSessao()
@@ -56,14 +58,13 @@ export default function Painel() {
 
   return (
     <div className="pagina">
-      <Link to="/casa" className="link">← Casa</Link>
-      <h1>Validar</h1>
+      <Topo titulo="Validar" voltar="/casa" />
       <AtivarNotificacoes discreto
         motivo="Receba um aviso no celular quando alguém pedir para entrar ou marcar uma folha nova na sua casa." />
       {!carregado && <p className="sutil">Carregando…</p>}
       {nadaPendente && (
         <div className="cartao tudo-em-dia">
-          <strong>✔ Tudo em dia!</strong>
+          <strong className="icone-texto"><CircleCheck size={20} aria-hidden /> Tudo em dia</strong>
           <span className="sutil">Nenhum pedido, folha ou ponto esperando você.</span>
         </div>
       )}
@@ -105,7 +106,7 @@ export default function Painel() {
               {f.nome_ritual && <span className="sutil"> · {f.nome_ritual}</span>}
               {f.nome_cientifico && <div className="cientifico">{f.nome_cientifico}</div>}
               {f.outros_nomes && <div className="sutil">Outros nomes: {f.outros_nomes}</div>}
-              {(f.toxica || f.alerta) && <div className="alerta-toxica">{f.toxica ? '⚠️ Tóxica. ' : ''}{f.alerta}</div>}
+              {(f.toxica || f.alerta) && <div className="alerta-toxica">{f.toxica ? 'Tóxica. ' : ''}{f.alerta}</div>}
               <div className="linha">
                 <button className="primario" disabled={ocupado === f.id}
                   onClick={() => executar(f.id, supabase.from('folhas').update({ status: 'validada' }).eq('id', f.id),
@@ -151,7 +152,7 @@ export default function Painel() {
       )}
 
       {souZelador && (
-        <Link to="/casa/membros" className="botao bloco">👥 Filhos da casa, papéis e convites</Link>
+        <Link to="/casa/membros" className="botao bloco"><Users size={18} aria-hidden /> Filhos da casa, papéis e convites</Link>
       )}
     </div>
   )

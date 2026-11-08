@@ -79,6 +79,10 @@ Toda leitura e escrita passa pelas regras de acesso (RLS). Ações sensíveis (a
 - **Notificações:** gatilhos no banco → `notificacoes` → `pg_net` chama a função `notificar` → Web Push para os celulares inscritos.
 - **Atualização do app:** o service worker procura versão nova ao abrir e quando o app volta para a tela (`src/lib/atualizacao.ts`).
 
+## Visual
+- `src/index.css` (base) + `src/visual.css` (camada visual): cores só por tokens em `:root`, com tema escuro (`prefers-color-scheme` ou `data-tema` escolhido em Perfil, `src/lib/tema.ts`).
+- Ícones: `lucide-react` (um só estilo de traço). Cabeçalho de tela: `src/components/Topo.tsx`. Perguntas: `src/lib/dialogo.ts` + `Dialogos.tsx`.
+
 ## Como rodar
 ```bash
 npm install

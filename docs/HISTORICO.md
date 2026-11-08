@@ -4,6 +4,17 @@ Entradas mais recentes no topo. Cada versão diz **o que mudou** e **por quê**.
 
 ---
 
+## v0.16 — 08/11/2026 — Visual profissional e limite de quantidade nos itens
+**Problema relatado:** numa função que pedia 3 galos, dava para marcar mais de 3.
+- **Limite de quantidade:** o banco não deixa combinar mais do que falta (mesmo com dois filhos marcando ao mesmo tempo); a tela mostra quanto falta e bloqueia o botão; quando o total é atingido o item fica "Completo" sozinho e os botões "Eu levo"/"Distribuir" somem. Se alguém desistir, o item volta a ficar aberto.
+- **Visual de app profissional:**
+  - ícones de traço (um só estilo) no lugar dos emojis em menus, cartões, botões e títulos;
+  - barra de topo fixa em todas as telas, com botão voltar e ação à direita;
+  - tipografia do sistema (a da marca fica só na entrada);
+  - cartões com sombra suave, listas agrupadas no padrão dos ajustes do celular, botões de 48px, campos maiores com foco visível;
+  - menu inferior com ícones e destaque da aba atual.
+- **Tema escuro**, automático pelo celular ou escolhido em Perfil › Aparência.
+
 ## v0.15 — 08/11/2026 — Revisão geral de uso e dos relatórios
 - **Confirmações dentro do app:** as 22 perguntas que usavam a janelinha do navegador ("Tem certeza?", "Por que recusar?", "Copie o link") viraram uma folha que sobe do rodapé, com botões grandes e o botão de apagar em vermelho. No app instalado no iPhone essas janelinhas às vezes nem apareciam.
 - **Relatórios mais exatos:** todas as barras usam a mesma régua (antes, o texto ao lado encurtava algumas barras); quem confirmou uma escala e faltou não conta mais como "participou"; o mês que ainda não venceu mostra "vence dia X" em vez de parecer atraso; comprovantes aguardando conferência aparecem nas contribuições.

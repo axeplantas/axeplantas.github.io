@@ -1,17 +1,17 @@
+import { BellRing, House } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { avisar } from '../lib/avisos'
 import { MODULOS, type Modulo, type Modulos } from '../lib/modulos'
 import { ehGestorFinanceiro, ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import type { FinanceiroCasa } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 const DIAS_AVISO = [7, 5, 3, 2, 1, 0]
 
 /** Zelador: o que aparece no app da casa, lembretes de pagamento e dados da casa. */
 export default function Configuracoes() {
   const { casaAtiva, modulos, recarregarPerfil } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const [escolha, setEscolha] = useState<Modulos>(modulos)
   const [salvando, setSalvando] = useState(false)
@@ -35,8 +35,7 @@ export default function Configuracoes() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa/gestao')}>← Gestão da casa</button>
-      <h1>Configurações da casa</h1>
+      <Topo titulo="Configurações da casa" voltar={'/casa/gestao'} />
       <p className="sutil">{casaAtiva?.terreiros?.nome}</p>
 
       <section>
@@ -48,7 +47,7 @@ export default function Configuracoes() {
         <div className="lista-modulos">
           {MODULOS.map((m) => (
             <label key={m.chave} className={`modulo ${escolha[m.chave] ? 'ligado' : ''}`}>
-              <span className="modulo-icone" aria-hidden>{m.icone}</span>
+              <span className="tile" aria-hidden><m.icone size={22} /></span>
               <span className="cresce">
                 <strong>{m.nome}</strong>
                 <span className="sutil">{m.descricao}</span>
@@ -101,7 +100,7 @@ function Lembretes({ terreiro }: { terreiro: string }) {
 
   return (
     <section className="cartao formulario">
-      <h2>🔔 Lembretes de pagamento</h2>
+      <h2 className="secao-titulo"><BellRing size={20} /> Lembretes de pagamento</h2>
       <p className="sutil">
         Quem ainda não pagou (nem enviou comprovante) recebe um aviso no celular, de manhã, nos dias que você escolher.
         Vale para mensalidades e contribuições.
@@ -168,7 +167,7 @@ function DadosDaCasa({ terreiro, nome, nacao, aoSalvar }: {
 
   return (
     <form className="cartao formulario" onSubmit={salvar}>
-      <h2>🏠 Dados da casa</h2>
+      <h2 className="secao-titulo"><House size={20} /> Dados da casa</h2>
       <label>
         Nome da casa
         <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} required maxLength={80} />

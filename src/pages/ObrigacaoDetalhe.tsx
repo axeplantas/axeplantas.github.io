@@ -1,3 +1,4 @@
+import { Bean, Bird, Brush, CircleCheck, CookingPot, Flame, Hand, Leaf, Map as IconeMapa, Package, Shirt, Soup, Trash2, TriangleAlert, Users, Wine, Wrench, X, type LucideIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import SeletorFolha from '../components/SeletorFolha'
@@ -12,11 +13,22 @@ import {
 } from '../lib/tipos'
 import { formatarData } from './Obrigacoes'
 import { confirmar } from '../lib/dialogo'
+import Topo from '../components/Topo'
 
 type PontoSimples = Pick<Ponto, 'id' | 'folha_id' | 'lat' | 'lng'>
 type FolhaSimples = Pick<Folha, 'id' | 'nome_popular' | 'status' | 'nome_cientifico' | 'outros_nomes'>
 
 const numero = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+
+const ICONE_CATEGORIA: Record<CategoriaItem, LucideIcon> = {
+  folha: Leaf, animal: Bird, semente: Bean, vela: Flame, bebida: Wine, alimento: CookingPot,
+  louca: Soup, tecido: Shirt, ferramenta: Wrench, outro: Package,
+}
+
+function IconeCategoria({ categoria }: { categoria: CategoriaItem }) {
+  const Icone = ICONE_CATEGORIA[categoria] ?? Package
+  return <span className="tile pequeno" aria-hidden><Icone size={18} /></span>
+}
 
 export function nomeDoItem(i: ItemObrigacao): string {
   return i.nome ?? i.folhas?.nome_popular ?? 'Item'
@@ -117,8 +129,7 @@ export default function ObrigacaoDetalhe() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/obrigacoes')}>← Funções e obrigações</button>
-      <h1>{obrigacao.nome}</h1>
+      <Topo titulo={obrigacao.nome} voltar={'/obrigacoes'} />
       <p className="sutil">
         {obrigacao.data && `${formatarData(obrigacao.data)} · `}
         {daCasa ? (casaAtiva?.terreiros?.nome ?? 'Minha casa') : 'Só eu'}
@@ -135,13 +146,13 @@ export default function ObrigacaoDetalhe() {
 
       {minhas.length > 0 && (
         <div className="cartao meus-itens">
-          <strong>🙋 Você vai levar</strong>
+          <strong className="icone-texto"><Hand size={18} aria-hidden /> Você vai levar</strong>
           {minhas.map((c) => {
             const item = itens.find((i) => i.id === c.item_id)
             return (
               <div key={c.id} className="sutil">
                 {comUnidade(Number(c.quantidade), item?.unidade)} de {item ? nomeDoItem(item) : 'item'}
-                {c.status === 'entregue' ? ' · ✅ entregue' : ''}
+                {c.status === 'entregue' ? ' · entregue' : ''}
               </div>
             )
           })}
@@ -149,9 +160,9 @@ export default function ObrigacaoDetalhe() {
       )}
 
       <div className="linha botoes-funcao">
-        {modulos.mapa && idsFolhas.length > 0 && <Link to={`/?folhas=${idsFolhas.join(',')}`} className="botao">🗺️ Folhas no mapa</Link>}
+        {modulos.mapa && idsFolhas.length > 0 && <Link to={`/?folhas=${idsFolhas.join(',')}`} className="botao"><IconeMapa size={18} aria-hidden /> Folhas no mapa</Link>}
         {daCasa && organiza && modulos.escalas && (
-          <Link to={`/casa/escalas?obrigacao=${obrigacao.id}&titulo=${encodeURIComponent(obrigacao.nome)}`} className="botao">🧹 Criar escala</Link>
+          <Link to={`/casa/escalas?obrigacao=${obrigacao.id}&titulo=${encodeURIComponent(obrigacao.nome)}`} className="botao"><Brush size={18} aria-hidden /> Criar escala</Link>
         )}
       </div>
       {erro && <p className="erro">{erro}</p>}
@@ -197,9 +208,15 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
   const soma = contribuicoes.reduce((s, c) => s + Number(c.quantidade), 0)
   const falta = total !== null ? Math.max(0, total - soma) : null
   const minha = contribuicoes.find((c) => c.perfil_id === eu)
+  const completo = falta === 0
   const categoria = (item.categoria ?? 'folha') as CategoriaItem
-  const icone = ROTULO_CATEGORIA_ITEM[categoria]?.split(' ')[0] ?? '📦'
   const quantidadeTexto = total !== null ? comUnidade(total, item.unidade) : item.quantidade
+  // Quanto cabe para quem vai levar: o que falta + o que essa pessoa já tinha combinado.
+  const limite = (quemLeva: string) =>
+    falta === null ? null : falta + Number(contribuicoes.find((c) => c.perfil_id === quemLeva)?.quantidade ?? 0)
+  const maximo = acao === 'levar' ? limite(eu) : quem ? limite(quem) : falta
+  const qtdDigitada = Number(quantidade.replace(',', '.'))
+  const passou = maximo !== null && qtdDigitada > maximo
 
   async function rpc(nome: string, args: Record<string, unknown>, ok: string) {
     const { error } = await supabase.rpc(nome, args)
@@ -217,14 +234,20 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
 
   return (
     <li className={`item-obrigacao ${item.colhida ? 'colhida' : ''}`}>
-      <label className="marcador">
-        <input type="checkbox" checked={item.colhida} onChange={aoMarcar} aria-label="Pronto" />
-        <span>
-          <strong>{icone} {nomeDoItem(item)}</strong>
-          {quantidadeTexto && <span className="sutil"> · {quantidadeTexto}</span>}
+      <div className="item-topo">
+        <IconeCategoria categoria={categoria} />
+        <span className="item-nome cresce">
+          <strong>{nomeDoItem(item)}</strong>
+          {quantidadeTexto && <span className="sutil">{quantidadeTexto}</span>}
         </span>
-      </label>
-      {item.folhas?.toxica && <div className="alerta-toxica">⚠️ Tóxica{item.folhas.alerta ? `: ${item.folhas.alerta}` : ''}</div>}
+        {(completo || item.colhida) && <span className="etiqueta situacao-confirmado">{completo ? 'Completo' : 'Pronto'}</span>}
+        <label className="check-item" title="Marcar como pronto">
+          <input type="checkbox" checked={item.colhida} onChange={aoMarcar} aria-label={`${nomeDoItem(item)}: pronto`} />
+        </label>
+      </div>
+      {item.folhas?.toxica && (
+        <div className="alerta-toxica icone-texto"><TriangleAlert size={16} aria-hidden /> Tóxica{item.folhas.alerta ? `: ${item.folhas.alerta}` : ''}</div>
+      )}
 
       {daCasa && (total !== null || contribuicoes.length > 0) && (
         <div className="contribuicoes">
@@ -236,7 +259,9 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
           {contribuicoes.map((c) => (
             <div key={c.id} className="contribuicao">
               <span className="cresce">
-                {c.status === 'entregue' ? '✅' : '🙋'} <strong>{c.perfil_id === eu ? 'Você' : nomeDe(irmaos, c.perfil_id)}</strong>{' '}
+                {c.status === 'entregue'
+                  ? <CircleCheck size={16} className="cor-ok" aria-label="Entregue" />
+                  : <Hand size={16} className="cor-sutil" aria-hidden />}{' '}<strong>{c.perfil_id === eu ? 'Você' : nomeDe(irmaos, c.perfil_id)}</strong>{' '}
                 leva {comUnidade(Number(c.quantidade), item.unidade)}
                 {c.atribuido_por && <span className="sutil"> (pedido do zelador)</span>}
               </span>
@@ -247,28 +272,39 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
                 </button>
               )}
               {(organiza || (c.perfil_id === eu && !c.atribuido_por)) && (
-                <button className="link perigo" onClick={() => rpc('desistir_item', { p_contribuicao: c.id }, 'Tirado da lista de quem leva.')}>✕</button>
+                <button className="link perigo" onClick={() => rpc('desistir_item', { p_contribuicao: c.id }, 'Tirado da lista de quem leva.')}
+                  aria-label={`Tirar ${c.perfil_id === eu ? 'você' : nomeDe(irmaos, c.perfil_id)} deste item`}><X size={18} /></button>
               )}
             </div>
           ))}
-          {falta !== null && <div className="sutil">{falta > 0 ? `Faltam ${comUnidade(falta, item.unidade)}` : 'Quantidade completa ✅'}</div>}
+          {falta !== null && <div className="sutil">{falta > 0 ? `Faltam ${comUnidade(falta, item.unidade)}` : 'Quantidade completa: ninguém mais precisa levar.'}</div>}
         </div>
       )}
 
-      {daCasa && !item.colhida && (
+      {((daCasa && !item.colhida && !completo) || organiza) && (
         <div className="linha acoes-item">
-          {(item.aberto !== false || organiza) && !minha && (falta === null || falta > 0) && (
-            <button className="botao pequeno-botao" onClick={() => abrir('levar')}>🙋 Eu levo</button>
+          {daCasa && !item.colhida && !completo && (
+            <>
+              {(item.aberto !== false || organiza) && !minha && (
+                <button className="botao pequeno-botao" onClick={() => abrir('levar')}><Hand size={16} aria-hidden /> Eu levo</button>
+              )}
+              {organiza && <button className="botao pequeno-botao" onClick={() => abrir('distribuir')}><Users size={16} aria-hidden /> Distribuir</button>}
+              {item.aberto === false && !organiza && !minha && <span className="sutil">O zelador distribui este item.</span>}
+            </>
           )}
-          {organiza && <button className="botao pequeno-botao" onClick={() => abrir('distribuir')}>👥 Distribuir</button>}
-          {item.aberto === false && !organiza && !minha && <span className="sutil">O zelador distribui este item.</span>}
+          {organiza && (
+            <button className="botao-icone perigo" onClick={aoRemover} aria-label={`Tirar ${nomeDoItem(item)} da lista`} title="Tirar da lista">
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
       )}
 
       {acao && (
         <form className="formulario distribuir" onSubmit={(e) => {
           e.preventDefault()
-          const qtd = Number(quantidade.replace(',', '.'))
+          const qtd = qtdDigitada
+          if (passou) return
           if (acao === 'levar') rpc('contribuir_item', { p_item: item.id, p_quantidade: qtd }, 'Obrigado! Você está na lista de quem leva.')
           else rpc('atribuir_item', { p_item: item.id, p_perfil: quem, p_quantidade: qtd }, `${nomeDe(irmaos, quem)} foi avisado(a).`)
         }}>
@@ -279,12 +315,18 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
             </select>
           )}
           <div className="linha">
-            <input type="number" inputMode="decimal" min="0.01" step="any" value={quantidade} onChange={(e) => setQuantidade(e.target.value)}
-              required className="cresce" aria-label="Quantidade" />
+            <input type="number" inputMode="decimal" min="0.01" step="any" max={maximo ?? undefined} value={quantidade}
+              onChange={(e) => setQuantidade(e.target.value)} required className="cresce" aria-label="Quantidade"
+              aria-invalid={passou} />
             <span>{item.unidade ?? 'unidade(s)'}</span>
           </div>
+          {maximo !== null && (
+            <p className={passou ? 'erro' : 'sutil'}>
+              {passou ? `Só faltam ${comUnidade(maximo, item.unidade)}: diminua a quantidade.` : `Faltam ${comUnidade(maximo, item.unidade)}.`}
+            </p>
+          )}
           <div className="linha">
-            <button className="primario">{acao === 'levar' ? 'Confirmar' : 'Distribuir e avisar'}</button>
+            <button className="primario" disabled={passou}>{acao === 'levar' ? 'Confirmar' : 'Distribuir e avisar'}</button>
             <button type="button" className="link" onClick={() => setAcao(null)}>Cancelar</button>
           </div>
         </form>
@@ -306,7 +348,6 @@ function Item({ item, daCasa, organiza, eu, irmaos, contribuicoes, perto, mostra
           )}
         </div>
       )}
-      {organiza && <button className="link perigo pequeno" onClick={aoRemover}>Tirar da lista</button>}
     </li>
   )
 }

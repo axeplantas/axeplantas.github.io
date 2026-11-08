@@ -1,11 +1,13 @@
+import { Check, CircleCheck, Paperclip } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { avisar } from '../lib/avisos'
 import { hoje, ROTULO_SITUACAO, seAplica, valorDe, type Pessoa, type Situacao } from '../lib/financeiro'
 import { prepararFoto } from '../lib/imagem'
 import { ehGestorFinanceiro, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { confirmar, copiar as copiarTexto, pedirTexto } from '../lib/dialogo'
+import Topo from '../components/Topo'
 import {
   formatarDataCurta, formatarReais,
   type Cobranca, type FinanceiroCasa, type MembroDaCasa, type Pagamento,
@@ -23,7 +25,6 @@ async function abrirComprovante(caminho: string) {
 
 export default function Financeiro() {
   const { perfil, casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const gestor = ehGestorFinanceiro(casaAtiva)
   const [config, setConfig] = useState<FinanceiroCasa | null>(null)
@@ -73,8 +74,7 @@ export default function Financeiro() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
-      <h1>Financeiro</h1>
+      <Topo titulo="Financeiro" voltar={'/casa'} />
       <p className="sutil">{casaAtiva.terreiros?.nome}</p>
 
       {gestor && (
@@ -151,7 +151,7 @@ function Minhas({ eu, terreiro, config, cobrancas, pagamentos, alvos, gestor, ao
 
       <div className={`cartao resumo-financeiro ${emAberto.length === 0 ? 'em-dia' : ''}`}>
         {emAberto.length === 0 ? (
-          <strong>✔ Você está em dia com a casa.</strong>
+          <strong className="icone-texto"><CircleCheck size={20} aria-hidden /> Você está em dia com a casa.</strong>
         ) : (
           <>
             <strong>{emAberto.length} em aberto · {formatarReais(emAberto.reduce((s, x) => s + x.valor, 0))}</strong>
@@ -194,7 +194,7 @@ function Minhas({ eu, terreiro, config, cobrancas, pagamentos, alvos, gestor, ao
           </button>
           {verPagas && pagas.map(({ c, situacao, valor, pagamento }) => (
             <div key={c.id} className="linha item-pago">
-              <span className="cresce">✔ {c.titulo}</span>
+              <span className="cresce icone-texto"><Check size={16} aria-hidden /> {c.titulo}</span>
               <span className="sutil">{situacao === 'isento' ? 'Isento' : formatarReais(valor)}</span>
               {pagamento?.comprovante && <button className="link" onClick={() => abrirComprovante(pagamento.comprovante!)}>Ver</button>}
             </div>
@@ -265,7 +265,7 @@ function InformarPagamento({ terreiro, perfilId, cobranca, aoTerminar }: {
   return (
     <form className="formulario informar" onSubmit={enviar}>
       <label className="botao-foto">
-        {arquivo ? `📎 ${arquivo.name}` : '📎 Anexar comprovante (foto, print ou PDF)'}
+        <Paperclip size={18} aria-hidden /> {arquivo ? arquivo.name : 'Anexar comprovante (foto, print ou PDF)'}
         <input type="file" accept="image/*,application/pdf" hidden onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
       </label>
       <label>
@@ -326,7 +326,7 @@ function Conferir({ pendentes, cobrancas, membros, aoMudar }: {
   }
 
   if (pendentes.length === 0) {
-    return <div className="cartao tudo-em-dia"><strong>✔ Nenhum comprovante para conferir.</strong></div>
+    return <div className="cartao tudo-em-dia"><strong className="icone-texto"><CircleCheck size={20} aria-hidden /> Nenhum comprovante para conferir.</strong></div>
   }
 
   return (
@@ -343,7 +343,7 @@ function Conferir({ pendentes, cobrancas, membros, aoMudar }: {
             <div>{c?.titulo}</div>
             <div className="sutil">Enviado em {p.informado_em ? new Date(p.informado_em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'}</div>
             {p.observacao && <p>“{p.observacao}”</p>}
-            {p.comprovante && <button className="botao" onClick={() => abrirComprovante(p.comprovante!)}>📎 Ver comprovante</button>}
+            {p.comprovante && <button className="botao" onClick={() => abrirComprovante(p.comprovante!)}><Paperclip size={18} aria-hidden /> Ver comprovante</button>}
             <div className="linha">
               <button className="primario" disabled={ocupado === p.id} onClick={() => agir(p, 'confirmado')}>Confirmar</button>
               <button className="link perigo" disabled={ocupado === p.id} onClick={() => agir(p, 'recusado')}>Recusar</button>

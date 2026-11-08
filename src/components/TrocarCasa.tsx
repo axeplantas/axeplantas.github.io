@@ -1,3 +1,4 @@
+import { House } from 'lucide-react'
 import { useState } from 'react'
 import { avisar } from '../lib/avisos'
 import { useSessao } from '../lib/sessao'
@@ -28,7 +29,7 @@ export default function TrocarCasa() {
   if (casas.length === 1) {
     return (
       <div className="casa-atual">
-        <span className="casa-icone" aria-hidden>🏠</span>
+        <span className="tile" aria-hidden><House size={20} aria-hidden /></span>
         <span>
           <strong>{casaAtiva?.terreiros?.nome}</strong>
           <span className="sutil"> · {casaAtiva && ROTULO_PAPEL[casaAtiva.papel]}{casaAtiva?.contador ? ' e contador(a)' : ''}</span>
@@ -39,7 +40,7 @@ export default function TrocarCasa() {
 
   return (
     <label className="casa-atual trocar">
-      <span className="casa-icone" aria-hidden>🏠</span>
+      <span className="tile" aria-hidden><House size={20} aria-hidden /></span>
       <span className="cresce">
         <span className="sutil">Você está em ({casas.length} casas)</span>
         <select value={casaAtiva?.terreiro_id ?? ''} disabled={trocando} onChange={(e) => trocar(e.target.value)}

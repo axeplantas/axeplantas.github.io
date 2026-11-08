@@ -327,7 +327,21 @@ banco.obrigacao_itens.push(
 banco.obrigacao_itens.find((i) => i.id === 'i2')!.quantidade_total = 3
 banco.obrigacao_itens.find((i) => i.id === 'i2')!.unidade = 'galho'
 
+function recalcularItens() {
+  for (const i of banco.obrigacao_itens) {
+    if (!i.quantidade_total) continue
+    const soma = banco.item_contribuicoes.filter((c) => c.item_id === i.id).reduce((s, c) => s + Number(c.quantidade), 0)
+    i.colhida = soma >= Number(i.quantidade_total)
+  }
+}
+
 function rpcNovas(nome: string, a: any): { data: any; error: any } | null {
+  const r = rpcNovasSemRecalculo(nome, a)
+  if (r && ['contribuir_item', 'atribuir_item', 'desistir_item'].includes(nome)) recalcularItens()
+  return r
+}
+
+function rpcNovasSemRecalculo(nome: string, a: any): { data: any; error: any } | null {
   const irmaos = () => banco.membros.filter((m) => m.terreiro_id === T1 && m.aprovado)
     .map((m) => ({ perfil_id: m.perfil_id, apelido: banco.perfis.find((p) => p.id === m.perfil_id)?.apelido ?? '?', papel: m.papel }))
     .sort((x, y) => x.apelido.localeCompare(y.apelido, 'pt-BR'))
@@ -413,6 +427,12 @@ function rpcNovas(nome: string, a: any): { data: any; error: any } | null {
     case 'atribuir_item': {
       const item = banco.obrigacao_itens.find((x) => x.id === a.p_item)!
       const quem = nome === 'contribuir_item' ? EU : a.p_perfil
+      if (item.quantidade_total) {
+        const outros = banco.item_contribuicoes.filter((x) => x.item_id === item.id && x.perfil_id !== quem)
+          .reduce((s, x) => s + Number(x.quantidade), 0)
+        const vaga = Math.max(Number(item.quantidade_total) - outros, 0)
+        if (a.p_quantidade > vaga) return falha(vaga === 0 ? 'Este item já está completo' : `Só faltam ${vaga} ${item.unidade ?? ''} deste item`)
+      }
       const existente = banco.item_contribuicoes.find((x) => x.item_id === a.p_item && x.perfil_id === quem)
       if (existente) existente.quantidade = a.p_quantidade
       else banco.item_contribuicoes.push({ id: crypto.randomUUID(), item_id: a.p_item, obrigacao_id: item.obrigacao_id, terreiro_id: T1,

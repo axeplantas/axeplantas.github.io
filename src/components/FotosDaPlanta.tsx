@@ -1,3 +1,4 @@
+import { Camera } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ROTULO_ORGAO, type Orgao } from '../lib/tipos'
 
@@ -50,7 +51,7 @@ export default function FotosDaPlanta({ fotos, aoMudar }: { fotos: FotoPlanta[];
 
       {fotos.length < MAXIMO && (
         <label className="botao-foto">
-          {fotos.length === 0 ? '📷 Tirar ou escolher foto' : '📷 Adicionar outra foto (flor, fruto, planta inteira…)'}
+          <Camera size={20} aria-hidden />{fotos.length === 0 ? ' Tirar ou escolher foto' : ' Adicionar outra foto (flor, fruto, planta inteira…)'}
           <input type="file" accept="image/*" capture="environment" hidden
             onChange={(e) => { adicionar(e.target.files?.[0]); e.target.value = '' }} />
         </label>

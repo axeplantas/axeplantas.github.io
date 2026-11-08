@@ -1,10 +1,12 @@
+import { Clock, HeartPulse, LockKeyhole, Pill, Sparkles, UserRound } from 'lucide-react'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { avisar } from '../lib/avisos'
 import { useIrmaos, nomeDe } from '../lib/casa'
 import { ehZelador, temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { formatarDataCurta, idade, type Ficha as TipoFicha, type Medicamento } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 type Campos = Omit<TipoFicha, 'perfil_id' | 'terreiro_id' | 'consentimento_em' | 'atualizado_em' | 'atualizado_por'>
 
@@ -25,7 +27,6 @@ const ESPIRITUAL: (keyof Campos)[] = ['orixa_cabeca', 'orixa_ajunto', 'outros_or
 export default function Ficha() {
   const { id } = useParams()
   const { perfil, casaAtiva, casas } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const dono = id ?? perfil?.id
   const minha = dono === perfil?.id
@@ -96,20 +97,16 @@ export default function Ficha() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar(minha ? '/casa' : '/casa/fichas')}>← {minha ? 'Casa' : 'Fichas dos filhos'}</button>
-      <div className="cabecalho">
-        <h1>{nome}</h1>
-        {!editando && (minha || podeEditarEspiritual) && <button className="botao" onClick={() => setEditando(true)}>Editar</button>}
-      </div>
+      <Topo titulo={nome} voltar={minha ? '/casa' : '/casa/fichas'} acao={<>{!editando && (minha || podeEditarEspiritual) && <button className="botao" onClick={() => setEditando(true)}>Editar</button>}</>} />
       <p className="sutil">
         {casaAtiva?.terreiros?.nome}
         {ficha?.atualizado_em && ` · atualizada em ${formatarDataCurta(ficha.atualizado_em)}`}
       </p>
 
-      <p className="aviso-pequeno">
-        🔒 {minha
+      <p className="nota-privacidade">
+        <LockKeyhole size={18} aria-hidden /><span>{minha
           ? 'Só você, o zelador da casa e quem ele autorizar veem esta ficha. Seus irmãos nunca veem. Cada visualização e mudança fica registrada.'
-          : 'Dados pessoais e de saúde: trate com sigilo. Esta visualização fica registrada.'}
+          : 'Dados pessoais e de saúde: trate com sigilo. Esta visualização fica registrada.'}</span>
       </p>
 
       {!ficha && !editando && <p className="sutil">{minha ? 'Você ainda não preencheu sua ficha.' : 'Este filho ainda não preencheu a ficha.'}</p>}
@@ -130,7 +127,7 @@ export default function Ficha() {
 
       {(ficha || editando) && (
         <>
-          <Secao titulo="👤 Pessoal" bloqueada={editando && !minha}>
+          <Secao titulo={<><UserRound size={20} aria-hidden /> Pessoal</>} bloqueada={editando && !minha}>
             <Campo rotulo="Nome completo" valor={campos.nome_completo} editando={editando && minha} aoMudar={(v) => mudar('nome_completo', v)} />
             <Campo rotulo="Data de nascimento" tipo="date" valor={campos.data_nascimento} editando={editando && minha}
               aoMudar={(v) => mudar('data_nascimento', v)}
@@ -140,7 +137,7 @@ export default function Ficha() {
               aoMudar={(v) => mudar('contato_emergencia', v)} />
           </Secao>
 
-          <Secao titulo="🩺 Saúde" bloqueada={editando && !minha}>
+          <Secao titulo={<><HeartPulse size={20} aria-hidden /> Saúde</>} bloqueada={editando && !minha}>
             <Campo rotulo="Alergias (remédios, alimentos, ervas, animais...)" valor={campos.alergias} editando={editando && minha}
               aoMudar={(v) => mudar('alergias', v)} longo destaque={Boolean(campos.alergias)} vazio="Nenhuma alergia informada" />
             <Campo rotulo="Problemas de saúde (pressão, diabetes, coração, gravidez...)" valor={campos.condicoes_saude}
@@ -150,7 +147,7 @@ export default function Ficha() {
             <Remedios lista={campos.medicamentos} editando={editando && minha} aoMudar={(l) => mudar('medicamentos', l)} />
           </Secao>
 
-          <Secao titulo="🕯️ Espiritual">
+          <Secao titulo={<><Sparkles size={20} aria-hidden /> Espiritual</>}>
             <Campo rotulo="Orixá de cabeça (pai/mãe de cabeça, Ori)" valor={campos.orixa_cabeca} editando={editando && podeEditarEspiritual}
               aoMudar={(v) => mudar('orixa_cabeca', v)} />
             <Campo rotulo="Juntó / segundo orixá" valor={campos.orixa_ajunto} editando={editando && podeEditarEspiritual}
@@ -198,7 +195,7 @@ export default function Ficha() {
   )
 }
 
-function Secao({ titulo, bloqueada, children }: { titulo: string; bloqueada?: boolean; children: ReactNode }) {
+function Secao({ titulo, bloqueada, children }: { titulo: ReactNode; bloqueada?: boolean; children: ReactNode }) {
   return (
     <section className={`cartao ficha-secao ${bloqueada ? 'bloqueada' : ''}`}>
       <h2>{titulo}</h2>
@@ -256,9 +253,9 @@ function Remedios({ lista, editando, aoMudar }: { lista: Medicamento[]; editando
           <ul className="remedios">
             {lista.map((m, i) => (
               <li key={i}>
-                <strong>💊 {m.nome}</strong>{m.dose && ` · ${m.dose}`}
+                <strong className="icone-texto"><Pill size={16} aria-hidden /> {m.nome}</strong>{m.dose && ` · ${m.dose}`}
                 {m.continuo && <span className="etiqueta situacao-informado">Uso contínuo</span>}
-                {m.horarios && <div>🕑 {m.horarios}</div>}
+                {m.horarios && <div className="icone-texto"><Clock size={14} aria-hidden /> {m.horarios}</div>}
                 {m.para_que && <div className="sutil">Para: {m.para_que}</div>}
                 {m.observacao && <div className="sutil">{m.observacao}</div>}
               </li>

@@ -4,6 +4,7 @@ import { useIrmaos } from '../lib/casa'
 import { ehEquipe, temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import type { Obrigacao } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 interface Resumo extends Obrigacao {
   total: number
@@ -41,10 +42,7 @@ export default function Obrigacoes() {
 
   return (
     <div className="pagina">
-      <div className="cabecalho">
-        <h1>Funções e obrigações</h1>
-        {!criando && <button className="botao" onClick={() => setCriando(true)}>+ Nova</button>}
-      </div>
+      <Topo titulo="Funções e obrigações" voltar="/casa" acao={<>{!criando && <button className="botao" onClick={() => setCriando(true)}>+ Nova</button>}</>} />
       <p className="sutil">
         Liste tudo o que vai ser preciso (folhas, bichos, sementes, velas...). Os filhos se oferecem para levar ou o zelador
         distribui quem leva o quê.

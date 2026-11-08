@@ -1,8 +1,10 @@
+import { BadgeCheck, Brush, CalendarDays, ChartColumnBig, ChevronRight, ClipboardList, History, House, Leaf, Package, Receipt, Settings2, Stethoscope, Ticket, UserPlus, Users, Wallet } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { hoje, seAplica, valorDe } from '../lib/financeiro'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { supabase } from '../lib/supabase'
+import Topo from '../components/Topo'
 import {
   formatarDataCurta, formatarReais, ROTULO_PAPEL,
   type Cobranca, type Evento, type FinanceiroCasa, type MembroDaCasa, type Pagamento,
@@ -25,7 +27,6 @@ interface Resumo {
 /** Painel do zelador: números da casa e acesso a tudo o que ele administra. */
 export default function Gestao() {
   const { casaAtiva, modulos } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const [resumo, setResumo] = useState<Resumo | null>(null)
 
@@ -96,16 +97,15 @@ export default function Gestao() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
-      <h1>Gestão da casa</h1>
+      <Topo titulo="Gestão da casa" voltar={'/casa'} />
 
       <div className="casa-atual">
-        <span className="casa-icone" aria-hidden>🏠</span>
+        <span className="tile" aria-hidden><House size={22} /></span>
         <span className="cresce">
           <strong>{casaAtiva?.terreiros?.nome}</strong>
           <div className="sutil">{casaAtiva?.terreiros?.nacao}</div>
         </span>
-        <Link to="/casa/configuracoes" className="link">⚙️ Configurar</Link>
+        <Link to="/casa/configuracoes" className="link"><Settings2 size={18} /> Configurar</Link>
       </div>
 
       {!r && <p className="sutil">Carregando os números da casa…</p>}
@@ -115,9 +115,9 @@ export default function Gestao() {
           {(r.pendentes > 0 || r.conferir > 0 || r.folhasPontos > 0) && (
             <section className="cartao atencao">
               <h2>Precisa da sua atenção</h2>
-              {r.pendentes > 0 && <Link to="/casa/membros" className="linha-acao">👤 {r.pendentes} pedido(s) de entrada <span>›</span></Link>}
-              {r.conferir > 0 && <Link to="/casa/financeiro" className="linha-acao">📎 {r.conferir} comprovante(s) para conferir <span>›</span></Link>}
-              {modulos.mapa && r.folhasPontos > 0 && <Link to="/painel" className="linha-acao">🌿 {r.folhasPontos} folha(s) ou ponto(s) para validar <span>›</span></Link>}
+              {r.pendentes > 0 && <Link to="/casa/membros" className="linha-acao"><UserPlus size={18} /> {r.pendentes} pedido(s) de entrada <ChevronRight size={20} className="chevron" /></Link>}
+              {r.conferir > 0 && <Link to="/casa/financeiro" className="linha-acao"><Receipt size={18} /> {r.conferir} comprovante(s) para conferir <ChevronRight size={20} className="chevron" /></Link>}
+              {modulos.mapa && r.folhasPontos > 0 && <Link to="/painel" className="linha-acao"><Leaf size={18} /> {r.folhasPontos} folha(s) ou ponto(s) para validar <ChevronRight size={20} className="chevron" /></Link>}
             </section>
           )}
 
@@ -148,7 +148,7 @@ export default function Gestao() {
                 </>
               ) : (
                 <>
-                  <span className="indicador-numero pequeno">📅</span>
+                  <span className="indicador-numero pequeno"><CalendarDays size={24} /></span>
                   <span>nenhum evento marcado</span>
                 </>
               )}
@@ -157,62 +157,58 @@ export default function Gestao() {
               <span className="indicador-numero">{r.acabando}</span>
               <span>material(is) acabando</span>
             </Link>}
-            <Link to="/casa/relatorios" className="indicador">
-              <span className="indicador-numero pequeno">📊</span>
-              <span>ver todos os relatórios</span>
-            </Link>
           </div>
 
           <section>
             <h2>Administrar</h2>
             <div className="menu-gestao">
               <Link to="/casa/membros" className="linha-acao grande">
-                <span>👥</span>
+                <span className="tile" aria-hidden><Users size={22} /></span>
                 <span className="cresce">
                   <strong>Filhos e funções</strong>
                   <span className="sutil">
                     Aprovar pedidos, validadores ({validadores.length}), contador ({contadores.length ? contadores.map((c) => c.perfis?.apelido).join(', ') : 'nenhum'}), permissões e mensalidade de cada um.
                   </span>
                 </span>
-                <span>›</span>
+                <ChevronRight size={20} className="chevron" />
               </Link>
               <Link to="/casa/membros#convites" className="linha-acao grande">
-                <span>✉️</span>
+                <span className="tile dourado" aria-hidden><UserPlus size={22} /></span>
                 <span className="cresce">
                   <strong>Convidar filhos</strong>
                   <span className="sutil">Link para mandar no grupo da casa.</span>
                 </span>
-                <span>›</span>
+                <ChevronRight size={20} className="chevron" />
               </Link>
               <Link to="/casa/relatorios" className="linha-acao grande">
-                <span>📊</span>
+                <span className="tile azul" aria-hidden><ChartColumnBig size={22} /></span>
                 <span className="cresce">
                   <strong>Relatórios</strong>
                   <span className="sutil">Quem paga em dia e quem atrasa, participação nas escalas e funções, uso do app, aniversários e mais.</span>
                 </span>
-                <span>›</span>
+                <ChevronRight size={20} className="chevron" />
               </Link>
               <Link to="/casa/registros" className="linha-acao grande">
-                <span>🕵️</span>
+                <span className="tile" aria-hidden><History size={22} /></span>
                 <span className="cresce">
                   <strong>Registro de atividades</strong>
                   <span className="sutil">O que cada filho fez no app, e quando.</span>
                 </span>
-                <span>›</span>
+                <ChevronRight size={20} className="chevron" />
               </Link>
               {modulos.fichas && (
                 <Link to="/casa/fichas" className="linha-acao grande">
-                  <span>🩺</span>
+                  <span className="tile vermelho" aria-hidden><Stethoscope size={22} /></span>
                   <span className="cresce">
                     <strong>Fichas dos filhos</strong>
                     <span className="sutil">Alergias, remédios, orixás, guias e mestres. Só você e quem você autorizar veem.</span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               {modulos.financeiro && (
                 <Link to="/casa/financeiro" className="linha-acao grande">
-                  <span>💰</span>
+                  <span className="tile dourado" aria-hidden><Wallet size={22} /></span>
                   <span className="cresce">
                     <strong>Financeiro</strong>
                     <span className="sutil">
@@ -221,76 +217,76 @@ export default function Gestao() {
                         : 'Configure o valor e a chave Pix para começar a cobrar.'}
                     </span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               {modulos.escalas && (
                 <Link to="/casa/escalas" className="linha-acao grande">
-                  <span>🧹</span>
+                  <span className="tile" aria-hidden><Brush size={22} /></span>
                   <span className="cresce">
                     <strong>Escalas</strong>
                     <span className="sutil">Convocar a casa, escolher filhos ou abrir vagas (os primeiros que confirmarem entram).</span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               {modulos.funcoes && (
                 <Link to="/obrigacoes" className="linha-acao grande">
-                  <span>📋</span>
+                  <span className="tile" aria-hidden><ClipboardList size={22} /></span>
                   <span className="cresce">
                     <strong>Funções e obrigações</strong>
                     <span className="sutil">Itens de todo tipo; distribua quem leva o quê.</span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               {modulos.calendario && (
                 <Link to="/casa/calendario" className="linha-acao grande">
-                  <span>📅</span>
+                  <span className="tile azul" aria-hidden><CalendarDays size={22} /></span>
                   <span className="cresce">
                     <strong>Calendário oficial</strong>
                     <span className="sutil">Festas, giras e obrigações; a casa é avisada e lembrada na véspera.</span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               {modulos.senhas && (
                 <Link to="/casa/senhas" className="linha-acao grande">
-                  <span>🎟️</span>
+                  <span className="tile dourado" aria-hidden><Ticket size={22} /></span>
                   <span className="cresce">
                     <strong>Senhas da gira</strong>
                     <span className="sutil">Entregar na porta e chamar na ordem.</span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               {modulos.materiais && (
                 <Link to="/casa/materiais" className="linha-acao grande">
-                  <span>📦</span>
+                  <span className="tile" aria-hidden><Package size={22} /></span>
                   <span className="cresce">
                     <strong>Materiais de trabalho</strong>
                     <span className="sutil">Estoque, entradas e saídas, e quem pode ver.</span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               {modulos.mapa && (
                 <Link to="/painel" className="linha-acao grande">
-                  <span>✔️</span>
+                  <span className="tile" aria-hidden><BadgeCheck size={22} /></span>
                   <span className="cresce">
                     <strong>Validar folhas e pontos</strong>
                     <span className="sutil">Conferir o que os filhos marcaram no mapa.</span>
                   </span>
-                  <span>›</span>
+                  <ChevronRight size={20} className="chevron" />
                 </Link>
               )}
               <Link to="/casa/configuracoes" className="linha-acao grande">
-                <span>⚙️</span>
+                <span className="tile" aria-hidden><Settings2 size={22} /></span>
                 <span className="cresce">
                   <strong>Configurações da casa</strong>
                   <span className="sutil">Ligue só o que a casa usa (ex.: senhas, mapa), lembretes de pagamento e dados da casa.</span>
                 </span>
-                <span>›</span>
+                <ChevronRight size={20} className="chevron" />
               </Link>
             </div>
           </section>

@@ -1,0 +1,801 @@
+/*
+ * Camada visual (v0.16): tipografia, superfícies, barra de topo, listas agrupadas,
+ * botões e menu inferior. Vem depois de index.css e só usa os tokens de :root,
+ * por isso vale igual para o tema claro e o escuro.
+ */
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+::selection {
+  background: var(--verde-claro);
+}
+
+/* ---------- Tipografia ---------- */
+
+h1 {
+  font-family: inherit;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--texto);
+  margin: 0.25rem 0 0.75rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin: 1.4rem 0 0.6rem;
+}
+
+h3 {
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+/* Telas de entrada e espera mantêm o título da marca */
+.tela-central h1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2rem;
+  color: var(--verde);
+  letter-spacing: 0;
+}
+
+.sutil {
+  color: var(--sutil);
+}
+
+/* ---------- Ícones ---------- */
+
+.lucide {
+  flex: none;
+  stroke-width: 2;
+}
+
+/* ---------- Barra de topo ---------- */
+
+.pagina {
+  padding-top: 0;
+}
+
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  margin: 0 -16px 0.75rem;
+  padding: calc(env(safe-area-inset-top) + 6px) 16px 6px;
+  background: color-mix(in srgb, var(--fundo) 88%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  backdrop-filter: saturate(160%) blur(14px);
+  border-bottom: 1px solid transparent;
+}
+
+.topo.rolado {
+  border-bottom-color: var(--borda);
+}
+
+.topo-barra {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 52px;
+}
+
+.topo h1 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topo-voltar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: -8px;
+  border-radius: 50%;
+  color: var(--texto);
+}
+
+.topo-voltar:hover,
+.topo-voltar:focus-visible {
+  background: var(--superficie-2);
+}
+
+.topo-acao {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.topo-acao .botao,
+.topo-acao .primario {
+  min-height: 40px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.92rem;
+}
+
+.topo-subtitulo {
+  margin: -0.15rem 0 0;
+  padding-left: 0;
+  font-size: 0.88rem;
+  color: var(--sutil);
+}
+
+.topo-voltar + h1 ~ * {
+  flex-shrink: 0;
+}
+
+/* ---------- Botões ---------- */
+
+.primario,
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0.7rem 1.15rem;
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  transition: background 0.15s, transform 0.05s;
+}
+
+.primario {
+  background: var(--primaria);
+  color: var(--sobre-primaria);
+  box-shadow: var(--sombra-1);
+}
+
+.primario:hover:not(:disabled) {
+  background: var(--primaria-hover);
+}
+
+.botao {
+  background: var(--verde-claro);
+  color: var(--verde);
+}
+
+.primario:active:not(:disabled),
+.botao:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.primario.bloco,
+.botao.bloco {
+  display: flex;
+  width: 100%;
+}
+
+.primario-perigo {
+  background: var(--perigo-forte);
+}
+
+.link {
+  gap: 0.35rem;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--verde) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* ---------- Campos ---------- */
+
+input:not([type='radio'], [type='checkbox']),
+select,
+textarea {
+  min-height: 48px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 12px;
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: 16px;
+}
+
+textarea {
+  min-height: 80px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--verde);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--verde) 22%, transparent);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primaria);
+  flex: none;
+}
+
+.formulario label {
+  font-weight: 550;
+  font-size: 0.95rem;
+}
+
+.formulario label.opcao,
+.opcao {
+  min-height: 40px;
+  font-weight: 400;
+}
+
+.dica {
+  font-weight: 400;
+}
+
+/* ---------- Superfícies ---------- */
+
+.cartao {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-1);
+  padding: 1rem;
+}
+
+.cartao h2:first-child {
+  margin-top: 0;
+}
+
+.aviso,
+.aviso-pequeno {
+  border-radius: var(--raio-pequeno);
+}
+
+/* ---------- Listas agrupadas (padrão de ajustes do celular) ---------- */
+
+.lista {
+  margin: 0.75rem 0;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-1);
+  overflow: hidden;
+}
+
+.lista:empty {
+  display: none;
+}
+
+.lista > li + li {
+  border-top: 1px solid var(--borda);
+}
+
+.lista .item {
+  padding: 0.9rem 1rem;
+  border-bottom: none;
+}
+
+.lista .item:active {
+  background: var(--superficie-2);
+}
+
+.item-obrigacao {
+  padding: 0.9rem 1rem;
+  border-bottom: none;
+}
+
+.menu-gestao {
+  padding: 0;
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-1);
+  overflow: hidden;
+}
+
+.linha-acao {
+  min-height: 60px;
+  padding: 0.75rem 1rem;
+  gap: 0.85rem;
+}
+
+.linha-acao + .linha-acao {
+  border-top: 1px solid var(--borda);
+}
+
+.linha-acao {
+  border-bottom: none;
+}
+
+.linha-acao:active {
+  background: var(--superficie-2);
+}
+
+.linha-acao strong {
+  font-weight: 600;
+}
+
+.linha-acao > .chevron {
+  color: var(--borda-forte);
+}
+
+/* Ícone em quadradinho colorido (listas, cartões, módulos) */
+.tile {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--verde-claro);
+  color: var(--verde);
+}
+
+.tile.dourado {
+  background: var(--dourado-claro);
+  color: var(--dourado);
+}
+
+.tile.vermelho {
+  background: var(--perigo-claro);
+  color: var(--perigo);
+}
+
+.tile.azul {
+  background: var(--info-fundo);
+  color: var(--info-texto);
+}
+
+.tile.pequeno {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+/* ---------- Casa ---------- */
+
+.grade-casa {
+  gap: 0.75rem;
+}
+
+.cartao-casa {
+  gap: 0.15rem;
+  min-height: 128px;
+  padding: 1rem;
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-1);
+  transition: transform 0.08s, box-shadow 0.15s;
+}
+
+.cartao-casa:active {
+  transform: scale(0.98);
+}
+
+.cartao-casa .tile {
+  margin-bottom: 0.55rem;
+}
+
+.cartao-casa strong {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.cartao-gestao {
+  min-height: 76px;
+  padding: 1rem 1.1rem;
+  border-radius: var(--raio);
+  background: linear-gradient(135deg, var(--primaria), color-mix(in srgb, var(--primaria) 70%, #000));
+  box-shadow: var(--sombra-2);
+}
+
+.cartao-gestao .tile {
+  background: rgb(255 255 255 / 0.16);
+  color: var(--sobre-primaria);
+}
+
+.cartao-gestao strong {
+  font-size: 1.05rem;
+}
+
+.casa-atual {
+  border: 1px solid var(--borda);
+  background: var(--superficie);
+  box-shadow: var(--sombra-1);
+  border-radius: var(--raio);
+}
+
+/* ---------- Indicadores ---------- */
+
+.indicador {
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-1);
+  padding: 0.9rem 1rem;
+}
+
+.indicador-numero {
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Etiquetas ---------- */
+
+.etiqueta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Abas (controle segmentado) ---------- */
+
+.abas {
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+}
+
+.abas button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  border-radius: 9px;
+  color: var(--sutil);
+  font-weight: 600;
+}
+
+.abas button.ativa {
+  background: var(--superficie);
+  color: var(--texto);
+  box-shadow: var(--sombra-1);
+}
+
+/* ---------- Chips ---------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--superficie);
+  border-color: var(--borda-forte);
+  font-weight: 500;
+}
+
+.chip.ativo {
+  background: var(--primaria);
+  border-color: var(--primaria);
+  color: var(--sobre-primaria);
+}
+
+/* ---------- Progresso ---------- */
+
+.progresso {
+  height: 32px;
+  background: var(--verde-claro);
+}
+
+.progresso-barra {
+  background: color-mix(in srgb, var(--verde) 35%, var(--verde-claro));
+}
+
+.barra-progresso {
+  background: var(--superficie-2);
+}
+
+.barra-progresso > div {
+  background: var(--primaria);
+}
+
+/* ---------- Menu inferior ---------- */
+
+.menu {
+  background: color-mix(in srgb, var(--superficie) 94%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  backdrop-filter: saturate(160%) blur(14px);
+  border-top: 1px solid var(--borda);
+}
+
+.menu a {
+  gap: 3px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.menu a .menu-icone {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 30px;
+  border-radius: 15px;
+  transition: background 0.15s;
+}
+
+.menu a.active {
+  font-weight: 650;
+}
+
+.menu a.active .menu-icone {
+  background: var(--verde-claro);
+}
+
+.menu .menu-destaque .menu-icone {
+  width: 44px;
+  height: 44px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--primaria);
+  color: var(--sobre-primaria);
+  box-shadow: var(--sombra-2);
+}
+
+.menu a span {
+  font-size: inherit;
+}
+
+.menu .selo {
+  top: -4px;
+  right: 6px;
+}
+
+/* ---------- Mapa ---------- */
+
+.botao-localizar,
+.botao-camada,
+.mapa-filtro select,
+.filtro-ativo {
+  background: var(--superficie);
+  color: var(--texto);
+  box-shadow: var(--sombra-2);
+}
+
+.botao-localizar {
+  color: var(--verde);
+}
+
+.botao-camada {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 40px;
+}
+
+/* ---------- Avisos rápidos ---------- */
+
+.aviso-flutuante {
+  border-radius: 14px;
+  box-shadow: var(--sombra-2);
+  font-weight: 500;
+}
+
+/* ---------- Ficha, escalas, senhas ---------- */
+
+.ficha-secao h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.nota-privacidade {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--raio-pequeno);
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  color: var(--sutil);
+  font-size: 0.88rem;
+}
+
+.nota-privacidade .lucide {
+  margin-top: 2px;
+  color: var(--verde);
+}
+
+.icone-texto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.escala .cabecalho-botao strong,
+.relatorio h2 {
+  letter-spacing: -0.01em;
+}
+
+.relatorio h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---------- Diálogo ---------- */
+
+.dialogo {
+  background: var(--superficie);
+}
+
+/* ---------- Tema ---------- */
+
+.escolha-tema {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.escolha-tema .chip {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+}
+
+/* Mapa continua claro no tema escuro, mas os controles acompanham */
+.leaflet-container {
+  background: var(--superficie-2);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--superficie);
+  color: var(--texto);
+}
+
+/* ---------- Itens das funções ---------- */
+
+.item-topo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.item-nome {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.item-nome .sutil {
+  font-size: 0.85rem;
+}
+
+.item-obrigacao .marcador {
+  gap: 0.7rem;
+}
+
+.contribuicoes,
+.acoes-item,
+.distribuir,
+.onde {
+  margin-left: 2.6rem;
+}
+
+.contribuicao .link.perigo {
+  min-width: 40px;
+  justify-content: center;
+}
+
+.modulo {
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-1);
+}
+
+.modulo:not(.ligado) .tile {
+  background: var(--superficie-2);
+  color: var(--sutil);
+}
+
+.cor-ok { color: var(--verde); }
+.cor-perigo { color: var(--perigo); }
+.cor-sutil { color: var(--sutil); }
+
+.lista-registros li {
+  align-items: center;
+}
+
+.pessoas-escala li span.cresce {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.alerta-toxica {
+  border-radius: var(--raio-pequeno);
+}
+
+.senha-entregue,
+.chamada {
+  border-radius: var(--raio);
+}
+
+.nota-privacidade span {
+  flex: 1;
+}
+
+.item-obrigacao.colhida strong {
+  text-decoration: none;
+  color: inherit;
+}
+
+.item-obrigacao.colhida .item-nome strong {
+  text-decoration: line-through;
+  color: var(--sutil);
+}
+
+.check-item {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  cursor: pointer;
+}
+
+.check-item input {
+  width: 24px;
+  height: 24px;
+}
+
+.contribuicoes,
+.acoes-item,
+.distribuir,
+.onde {
+  margin-left: calc(32px + 0.6rem);
+}
+
+.acoes-item {
+  margin-top: 0.6rem;
+}
+
+.botao-icone {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  border-radius: 10px;
+  color: var(--sutil);
+}
+
+.botao-icone.perigo:hover,
+.botao-icone.perigo:focus-visible {
+  background: var(--perigo-claro);
+  color: var(--perigo);
+}
+
+.acoes-item {
+  margin-left: 0;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+
+.acoes-item .pequeno-botao {
+  padding: 0.45rem 0.8rem;
+  white-space: nowrap;
+}
+
+.onde {
+  margin-left: 0;
+  margin-top: 0.5rem;
+}
+
+input[type='checkbox'].interruptor {
+  width: 48px;
+  height: 28px;
+  accent-color: auto;
+}

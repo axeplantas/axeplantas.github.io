@@ -189,12 +189,12 @@ export interface Pagamento {
 export type TipoEvento = 'festa' | 'gira' | 'obrigacao' | 'reuniao' | 'mutirao' | 'outro'
 
 export const ROTULO_EVENTO: Record<TipoEvento, string> = {
-  festa: '🎉 Festa',
-  gira: '🥁 Gira',
-  obrigacao: '🕯️ Obrigação',
-  reuniao: '🗣️ Reunião',
-  mutirao: '🧹 Mutirão',
-  outro: '📌 Outro',
+  festa: 'Festa',
+  gira: 'Gira',
+  obrigacao: 'Obrigação',
+  reuniao: 'Reunião',
+  mutirao: 'Mutirão',
+  outro: 'Outro',
 }
 
 export interface Evento {
@@ -212,15 +212,15 @@ export interface Evento {
 export type CategoriaMaterial = 'folha' | 'animal' | 'vela' | 'louca' | 'bebida' | 'alimento' | 'tecido' | 'ferramenta' | 'outro'
 
 export const ROTULO_CATEGORIA: Record<CategoriaMaterial, string> = {
-  folha: '🌿 Folhas e ervas',
-  animal: '🐓 Animais',
-  vela: '🕯️ Velas',
-  louca: '🏺 Louças e alguidares',
-  bebida: '🍶 Bebidas',
-  alimento: '🍚 Alimentos e grãos',
-  tecido: '🧵 Tecidos e roupas',
-  ferramenta: '🔱 Ferramentas e fios',
-  outro: '📦 Outros',
+  folha: 'Folhas e ervas',
+  animal: 'Animais',
+  vela: 'Velas',
+  louca: 'Louças e alguidares',
+  bebida: 'Bebidas',
+  alimento: 'Alimentos e grãos',
+  tecido: 'Tecidos e roupas',
+  ferramenta: 'Ferramentas e fios',
+  outro: 'Outros',
 }
 
 export const UNIDADES = ['unidade', 'maço', 'cabeça', 'kg', 'g', 'litro', 'ml', 'metro', 'pacote', 'caixa', 'dúzia']
@@ -332,16 +332,16 @@ export interface ResumoFicha {
 export type CategoriaItem = CategoriaMaterial | 'semente'
 
 export const ROTULO_CATEGORIA_ITEM: Record<CategoriaItem, string> = {
-  folha: '🌿 Folha / erva',
-  animal: '🐓 Bicho',
-  semente: '🌰 Semente / grão',
-  vela: '🕯️ Vela',
-  bebida: '🍶 Bebida',
-  alimento: '🍚 Comida',
-  louca: '🏺 Louça / alguidar',
-  tecido: '🧵 Tecido / roupa',
-  ferramenta: '🔱 Ferramenta / fio',
-  outro: '📦 Outro',
+  folha: 'Folha / erva',
+  animal: 'Bicho',
+  semente: 'Semente / grão',
+  vela: 'Vela',
+  bebida: 'Bebida',
+  alimento: 'Comida',
+  louca: 'Louça / alguidar',
+  tecido: 'Tecido / roupa',
+  ferramenta: 'Ferramenta / fio',
+  outro: 'Outro',
 }
 
 export interface Contribuicao {

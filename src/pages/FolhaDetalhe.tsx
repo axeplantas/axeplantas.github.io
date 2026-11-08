@@ -1,15 +1,16 @@
+import { TriangleAlert } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import Foto from '../components/Foto'
 import { avisar } from '../lib/avisos'
 import { ehAdmin, ehValidador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { fotosDoPonto, type Folha, type Fundamento } from '../lib/tipos'
+import Topo from '../components/Topo'
 
 export default function FolhaDetalhe() {
   const { id } = useParams()
   const { perfil } = useSessao()
-  const navegar = useNavigate()
   const [folha, setFolha] = useState<Folha | null>(null)
   const [fundamento, setFundamento] = useState<Fundamento | null>(null)
   const [qtdPontos, setQtdPontos] = useState(0)
@@ -43,14 +44,10 @@ export default function FolhaDetalhe() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar(-1)}>← Voltar</button>
-      {editandoFolha ? (
+      <Topo titulo={folha.nome_popular} voltar={-1}
+        acao={!editandoFolha && podeEditarFolha && <button className="botao" onClick={() => setEditandoFolha(true)}>Editar</button>} />
+      {editandoFolha && (
         <EditarFolha folha={folha} aoSalvar={(f) => { setFolha(f); setEditandoFolha(false) }} aoCancelar={() => setEditandoFolha(false)} />
-      ) : (
-        <div className="cabecalho">
-          <h1>{folha.nome_popular}</h1>
-          {podeEditarFolha && <button className="link" onClick={() => setEditandoFolha(true)}>Editar</button>}
-        </div>
       )}
       {folha.nome_ritual && <p className="destaque">{folha.nome_ritual}</p>}
       {folha.nome_cientifico && <p className="cientifico">{folha.nome_cientifico}</p>}
@@ -59,7 +56,7 @@ export default function FolhaDetalhe() {
 
       {(folha.toxica || folha.alerta) && (
         <div className="caixa-alerta">
-          {folha.toxica && <strong>⚠️ Tóxica ou pede cuidado.</strong>} {folha.alerta}
+          {folha.toxica && <strong className="icone-texto"><TriangleAlert size={18} aria-hidden /> Tóxica ou pede cuidado.</strong>} {folha.alerta}
         </div>
       )}
 

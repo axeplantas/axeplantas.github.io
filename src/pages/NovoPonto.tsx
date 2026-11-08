@@ -1,3 +1,4 @@
+import { CircleCheck, CloudUpload, Hand, Satellite, WifiOff } from 'lucide-react'
 import type { LatLngExpression } from 'leaflet'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Circle, CircleMarker, MapContainer, useMap, useMapEvents } from 'react-leaflet'
@@ -6,6 +7,7 @@ import { BotaoCamada, Camada, useCamada } from '../components/CamadaMapa'
 import FotosDaPlanta, { type FotoPlanta } from '../components/FotosDaPlanta'
 import IdentificarFolha, { type FolhaResumo } from '../components/IdentificarFolha'
 import SeletorFolha from '../components/SeletorFolha'
+import Topo from '../components/Topo'
 import { avisar } from '../lib/avisos'
 import { ehErroDeRede, enviarPonto, guardarPonto } from '../lib/fila'
 import { buscarPosicaoPrecisa, type Leitura } from '../lib/gps'
@@ -165,10 +167,10 @@ export default function NovoPonto() {
 
   return (
     <form className="pagina formulario" onSubmit={salvar}>
-      <h1>Marcar uma folha</h1>
+      <Topo titulo="Marcar uma folha" />
       {semInternet && (
         <p className="aviso">
-          📵 Você está sem internet. Pode marcar normalmente: o ponto fica guardado no celular e é enviado sozinho quando o
+          <WifiOff size={18} aria-hidden /> Você está sem internet. Pode marcar normalmente: o ponto fica guardado no celular e é enviado sozinho quando o
           sinal voltar.
         </p>
       )}
@@ -222,7 +224,7 @@ export default function NovoPonto() {
         <SituacaoGps gps={gps} refinando={refinando} ajustadoAMao={ajustadoAMao} />
         <div className="linha">
           <button type="button" className="link" onClick={pegarLocalizacao} disabled={refinando}>
-            {refinando ? 'Buscando sinal do GPS…' : '📍 Pegar minha posição de novo'}
+            {refinando ? 'Buscando sinal do GPS…' : 'Pegar minha posição de novo'}
           </button>
           {!posicao && erroGps && (
             <button type="button" className="link" onClick={() => { setPosicao([-14.235, -51.925]); setZoom(4) }}>
@@ -264,7 +266,7 @@ export default function NovoPonto() {
       </button>
       {!semInternet && (
         <button type="button" className="botao" disabled={salvando} onClick={(e) => salvar(e as unknown as FormEvent, true)}>
-          📦 Guardar no celular e enviar depois
+          <CloudUpload size={18} aria-hidden /> Guardar no celular e enviar depois
         </button>
       )}
       {!semInternet && <p className="sutil centro">Use “guardar” quando o sinal estiver fraco: o app envia sozinho mais tarde.</p>}
@@ -274,17 +276,17 @@ export default function NovoPonto() {
 
 /** Mostra quão boa está a posição e o que fazer quando ela está ruim. */
 function SituacaoGps({ gps, refinando, ajustadoAMao }: { gps: Leitura | null; refinando: boolean; ajustadoAMao: boolean }) {
-  if (ajustadoAMao) return <p className="sutil">✋ Posição ajustada por você: vale onde a mira está.</p>
+  if (ajustadoAMao) return <p className="sutil icone-texto"><Hand size={16} aria-hidden /> Posição ajustada por você: vale onde a mira está.</p>
   if (!gps) return null
   if (refinando) {
     return (
       <p className="sutil">
-        📡 Melhorando a precisão… agora <strong>~{gps.precisao} m</strong>. Fique parado(a) uns segundos, de preferência
+        <Satellite size={16} aria-hidden /> Melhorando a precisão… agora <strong>~{gps.precisao} m</strong>. Fique parado(a) uns segundos, de preferência
         ao ar livre.
       </p>
     )
   }
-  if (gps.precisao <= 15) return <p className="sutil">✅ Precisão do GPS: ~{gps.precisao} m.</p>
+  if (gps.precisao <= 15) return <p className="sutil icone-texto"><CircleCheck size={16} className="cor-ok" aria-hidden /> Precisão do GPS: ~{gps.precisao} m.</p>
   return (
     <p className="aviso-pequeno">
       GPS impreciso (~{gps.precisao} m): o círculo azul mostra onde você pode estar. Arraste o mapa até a mira ficar em

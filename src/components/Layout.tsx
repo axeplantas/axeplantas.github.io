@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { House, Leaf, Map as IconeMapa, Plus, User } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ehGestorFinanceiro, ehValidador, ehZelador, useSessao } from '../lib/sessao'
 import { supabase } from '../lib/supabase'
@@ -71,24 +72,24 @@ export default function Layout() {
         {modulos.mapa && (
           <>
             <NavLink to="/" end>
-              <span aria-hidden>🗺️</span>Mapa
+              <span aria-hidden className="menu-icone"><IconeMapa size={22} /></span>Mapa
             </NavLink>
             <NavLink to="/folhas">
-              <span aria-hidden>🌿</span>Folhas
+              <span aria-hidden className="menu-icone"><Leaf size={22} /></span>Folhas
             </NavLink>
             <NavLink to="/marcar" className="menu-destaque">
-              <span aria-hidden>＋</span>Marcar
+              <span aria-hidden className="menu-icone"><Plus size={24} strokeWidth={2.5} /></span>Marcar
             </NavLink>
           </>
         )}
         <NavLink to="/casa" aria-label={pendencias ? `Casa, ${pendencias} pendentes` : 'Casa'}>
-          <span aria-hidden className="icone-com-selo">
-            🏠{pendencias > 0 && <b className="selo">{pendencias > 9 ? '9+' : pendencias}</b>}
+          <span aria-hidden className="menu-icone icone-com-selo">
+            <House size={22} />{pendencias > 0 && <b className="selo">{pendencias > 9 ? '9+' : pendencias}</b>}
           </span>
           Casa
         </NavLink>
         <NavLink to="/perfil">
-          <span aria-hidden>👤</span>Perfil
+          <span aria-hidden className="menu-icone"><User size={22} /></span>Perfil
         </NavLink>
       </nav>
     </div>

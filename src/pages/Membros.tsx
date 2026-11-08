@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import Convites from '../components/Convites'
 import { avisar } from '../lib/avisos'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { formatarReais, ROTULO_PAPEL, ROTULO_PERMISSAO, type MembroDaCasa, type Papel, type Permissao } from '../lib/tipos'
 import { confirmar } from '../lib/dialogo'
+import Topo from '../components/Topo'
 
 /** Zelador: quem é da casa, papéis, contador e mensalidade de cada filho. */
 export default function Membros() {
   const { perfil, casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const local = useLocation()
   const terreiro = casaAtiva?.terreiro_id
   const [membros, setMembros] = useState<MembroDaCasa[]>([])
@@ -73,8 +73,7 @@ export default function Membros() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa/gestao')}>← Gestão da casa</button>
-      <h1>Filhos e funções</h1>
+      <Topo titulo="Filhos e funções" voltar={'/casa/gestao'} />
       <p className="sutil">{casaAtiva?.terreiros?.nome}</p>
 
       {pendentes.length > 0 && (
@@ -132,7 +131,7 @@ export default function Membros() {
 
       <section className="cartao" id="convites">
         <Convites terreiroId={terreiro} tipo="membro"
-          titulo="👥 Convidar filhos da casa"
+          titulo="Convidar filhos da casa"
           explicacao="Envie este link no grupo da casa. Quem já tem conta (por ser de outra casa) entra com a mesma conta. Vale por 30 dias." />
       </section>
     </div>

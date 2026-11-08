@@ -1,10 +1,11 @@
+import { LockKeyhole } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { avisar } from '../lib/avisos'
 import { ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import { semAcento } from '../lib/texto'
 import { confirmar } from '../lib/dialogo'
+import Topo from '../components/Topo'
 import {
   ROTULO_CATEGORIA, UNIDADES,
   type CategoriaMaterial, type Material, type MembroDaCasa, type Movimento,
@@ -20,7 +21,6 @@ function acabando(m: Material): boolean {
 
 export default function Materiais() {
   const { casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const terreiro = casaAtiva?.terreiro_id
   const zelador = ehZelador(casaAtiva)
   const [podeVer, setPodeVer] = useState<boolean | null>(null)
@@ -61,8 +61,7 @@ export default function Materiais() {
   if (podeVer === false) {
     return (
       <div className="pagina">
-        <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
-        <h1>Materiais</h1>
+        <Topo titulo="Materiais" voltar={'/casa'} />
         <p>O zelador da casa ainda não liberou os materiais para você.</p>
       </div>
     )
@@ -70,17 +69,13 @@ export default function Materiais() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
-      <div className="cabecalho">
-        <h1>Materiais</h1>
-        {podeEditar && !novo && <button className="botao" onClick={() => setNovo(true)}>+ Material</button>}
-      </div>
+      <Topo titulo="Materiais" voltar={'/casa'} acao={<>{podeEditar && !novo && <button className="botao" onClick={() => setNovo(true)}>+ Material</button>}</>} />
       <p className="sutil">{casaAtiva?.terreiros?.nome}</p>
 
       {zelador && (
         configurando
           ? <QuemVe terreiro={terreiro} aoTerminar={() => setConfigurando(false)} />
-          : <button className="link" onClick={() => setConfigurando(true)}>🔒 Quem pode ver e editar os materiais</button>
+          : <button className="link" onClick={() => setConfigurando(true)}><LockKeyhole size={16} aria-hidden /> Quem pode ver e editar os materiais</button>
       )}
 
       {novo && <FormMaterial terreiro={terreiro} aoTerminar={async (ok) => { setNovo(false); if (ok) await carregar() }} />}
@@ -90,7 +85,7 @@ export default function Materiais() {
         <button className={`chip ${categoria === '' ? 'ativo' : ''}`} onClick={() => setCategoria('')}>Todos ({materiais.length})</button>
         {qtdAcabando > 0 && (
           <button className={`chip alerta ${categoria === 'acabando' ? 'ativo' : ''}`} onClick={() => setCategoria('acabando')}>
-            ⚠️ Acabando ({qtdAcabando})
+            Acabando ({qtdAcabando})
           </button>
         )}
         {(Object.keys(ROTULO_CATEGORIA) as CategoriaMaterial[])

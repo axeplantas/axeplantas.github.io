@@ -415,11 +415,34 @@ drop policy if exists itens_apagar on public.obrigacao_itens;
 create policy itens_apagar on public.obrigacao_itens for delete to authenticated
   using (public.posso_editar_obrigacao(obrigacao_id) or public.organiza_obrigacao(obrigacao_id));
 
+-- Quanto ainda cabe num item para esta pessoa (vazio = item sem quantidade definida).
+-- Trava a linha do item: dois filhos marcando ao mesmo tempo não passam do total.
+create or replace function public.vaga_no_item(p_item uuid, p_perfil uuid) returns numeric
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_total numeric;
+  v_outros numeric;
+begin
+  select quantidade_total into v_total from public.obrigacao_itens where id = p_item for update;
+  if v_total is null then
+    return null;
+  end if;
+  select coalesce(sum(quantidade), 0) into v_outros
+  from public.item_contribuicoes where item_id = p_item and perfil_id <> p_perfil;
+  return greatest(v_total - v_outros, 0);
+end $$;
+
+create or replace function public.texto_quantidade(p_quantidade numeric) returns text
+language sql immutable set search_path = '' as $$
+  select trim(to_char(p_quantidade, 'FM999G990D99'))
+$$;
+
 create or replace function public.contribuir_item(p_item uuid, p_quantidade numeric) returns void
 language plpgsql security definer set search_path = '' as $$
 declare
   v_item public.obrigacao_itens%rowtype;
   v_ob public.obrigacoes%rowtype;
+  v_vaga numeric;
 begin
   select * into v_item from public.obrigacao_itens where id = p_item;
   select * into v_ob from public.obrigacoes where id = v_item.obrigacao_id;
@@ -432,6 +455,11 @@ begin
   if coalesce(p_quantidade, 0) <= 0 then
     raise exception 'Informe a quantidade';
   end if;
+  v_vaga := public.vaga_no_item(p_item, auth.uid());
+  if v_vaga is not null and p_quantidade > v_vaga then
+    raise exception '%', case when v_vaga = 0 then 'Este item já está completo'
+                              else 'Só faltam ' || public.texto_quantidade(v_vaga) || coalesce(' ' || v_item.unidade, '') || ' deste item' end;
+  end if;
   insert into public.item_contribuicoes (item_id, obrigacao_id, terreiro_id, perfil_id, quantidade)
   values (p_item, v_ob.id, v_ob.terreiro_id, auth.uid(), p_quantidade)
   on conflict (item_id, perfil_id) do update set quantidade = excluded.quantidade;
@@ -442,6 +470,7 @@ language plpgsql security definer set search_path = '' as $$
 declare
   v_item public.obrigacao_itens%rowtype;
   v_ob public.obrigacoes%rowtype;
+  v_vaga numeric;
 begin
   select * into v_item from public.obrigacao_itens where id = p_item;
   select * into v_ob from public.obrigacoes where id = v_item.obrigacao_id;
@@ -453,6 +482,11 @@ begin
   end if;
   if coalesce(p_quantidade, 0) <= 0 then
     raise exception 'Informe a quantidade';
+  end if;
+  v_vaga := public.vaga_no_item(p_item, p_perfil);
+  if v_vaga is not null and p_quantidade > v_vaga then
+    raise exception '%', case when v_vaga = 0 then 'Este item já está completo'
+                              else 'Só faltam ' || public.texto_quantidade(v_vaga) || coalesce(' ' || v_item.unidade, '') || ' deste item' end;
   end if;
   insert into public.item_contribuicoes (item_id, obrigacao_id, terreiro_id, perfil_id, quantidade, atribuido_por)
   values (p_item, v_ob.id, v_ob.terreiro_id, p_perfil, p_quantidade, auth.uid())
@@ -498,6 +532,27 @@ begin
   end if;
   delete from public.item_contribuicoes where id = p_contribuicao;
 end $$;
+
+create or replace function public.atualizar_item_completo() returns trigger
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_item uuid := coalesce(new.item_id, old.item_id);
+begin
+  update public.obrigacao_itens i
+     set colhida = (select coalesce(sum(c.quantidade), 0) from public.item_contribuicoes c where c.item_id = i.id) >= i.quantidade_total
+   where i.id = v_item and i.quantidade_total is not null;
+  return null;
+end $$;
+
+drop trigger if exists item_completo on public.item_contribuicoes;
+create trigger item_completo after insert or update or delete on public.item_contribuicoes
+  for each row execute function public.atualizar_item_completo();
+
+-- Itens que já passaram do total antes desta regra: ficam marcados como concluídos.
+update public.obrigacao_itens i
+   set colhida = true
+ where i.quantidade_total is not null and not i.colhida
+   and (select coalesce(sum(c.quantidade), 0) from public.item_contribuicoes c where c.item_id = i.id) >= i.quantidade_total;
 
 alter table public.item_contribuicoes enable row level security;
 revoke all on public.item_contribuicoes from anon, authenticated;
@@ -978,6 +1033,7 @@ revoke execute on function
   public.configurar_lembretes(uuid, integer[], boolean, integer),
   public.lembrar_pagamentos(), public.lembretes_diarios()
   from public, anon;
+revoke execute on function public.vaga_no_item(uuid, uuid), public.atualizar_item_completo() from public, anon, authenticated;
 revoke execute on function public.registrar(uuid, text, text, uuid, jsonb), public.lembrar_pagamentos(),
   public.lembretes_diarios() from authenticated;
 grant execute on function

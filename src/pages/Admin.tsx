@@ -6,6 +6,7 @@ import { useSessao } from '../lib/sessao'
 import { linkDoConvite, mensagemDeErro, supabase } from '../lib/supabase'
 import { ROTULO_PAPEL, type MembroDaCasa, type Papel, type Terreiro } from '../lib/tipos'
 import { confirmar } from '../lib/dialogo'
+import Topo from '../components/Topo'
 
 const NACOES = ['Candomblé de Ketu', 'Candomblé de Angola', 'Candomblé Jeje', 'Umbanda', 'Umbanda / Jurema / Quimbanda', 'Jurema', 'Quimbanda']
 
@@ -42,7 +43,7 @@ export default function Admin() {
 
   return (
     <div className="pagina">
-      <h1>Administração</h1>
+      <Topo titulo="Administração" voltar="/perfil" />
       <p className="sutil">Só você vê esta área. Aqui você cria os terreiros e convida os zeladores.</p>
       {erro && <p className="erro">{erro}</p>}
 
@@ -110,12 +111,12 @@ function LinksDoTerreiro({ terreiroId, temZelador }: { terreiroId: string; temZe
   return (
     <>
       <Convites terreiroId={terreiroId} tipo="membro"
-        titulo="👥 Link para os filhos (várias pessoas)"
+        titulo="Link para os filhos (várias pessoas)"
         explicacao="Este é o link para mandar no grupo da casa. Várias pessoas podem usar; cada uma fica aguardando aprovação. Vale por 30 dias." />
       {mostrarZelador ? (
         <div className="alerta-zelador">
           <Convites terreiroId={terreiroId} tipo="zelador"
-            titulo="👑 Link para o zelador (1 pessoa só)"
+            titulo="Link para o zelador (1 pessoa só)"
             explicacao="Atenção: quem entrar por este link vira ZELADOR(A) da casa. Funciona para uma única pessoa. Não mande no grupo." />
         </div>
       ) : (

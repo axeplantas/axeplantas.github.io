@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 interface EventoInstalar extends Event {
@@ -85,7 +86,7 @@ export default function InstalarApp() {
       {eventoAndroid && (
         <button className="primario" onClick={instalarAndroid}>Instalar</button>
       )}
-      <button className="instalar-fechar" onClick={fechar} aria-label="Fechar">✕</button>
+      <button className="instalar-fechar" onClick={fechar} aria-label="Fechar"><X size={20} aria-hidden /></button>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { Bell } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { avisar } from '../lib/avisos'
 import { ativarNotificacoes, desativarNotificacoes, estadoNotificacoes, type EstadoNotificacao } from '../lib/notificacoes'
@@ -42,7 +43,7 @@ export default function AtivarNotificacoes({ motivo, discreto = false }: { motiv
 
   return (
     <section className="cartao notificacoes">
-      <h2>🔔 Notificações</h2>
+      <h2 className="secao-titulo"><Bell size={20} aria-hidden /> Notificações</h2>
       {estado === 'ativas' && (
         <>
           <p className="sutil">Ativas neste celular.</p>

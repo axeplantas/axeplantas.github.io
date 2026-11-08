@@ -1,9 +1,11 @@
+import { Brush, Cake, ClipboardList, Download, Map as IconeMapa, Package, Stethoscope, Ticket, TriangleAlert, Users, Wallet } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { baixarPlanilha, buscarTudo, comUnidade, diaMes, hojeIso, nomeDe, useIrmaos } from '../lib/casa'
 import { seAplica, valorDe } from '../lib/financeiro'
 import { ehZelador, temPermissao, useSessao } from '../lib/sessao'
 import { supabase } from '../lib/supabase'
+import Topo from '../components/Topo'
 import {
   formatarDataCurta, formatarReais, idade,
   type Cobranca, type Contribuicao, type Escala, type FinanceiroCasa, type Irmao, type ItemObrigacao,
@@ -34,7 +36,6 @@ interface Dados {
 /** Relatórios do zelador: dinheiro, participação, funções, uso do app, fichas, giras, mapa e materiais. */
 export default function Relatorios() {
   const { casaAtiva, modulos } = useSessao()
-  const navegar = useNavigate()
   const local = useLocation()
   const terreiro = casaAtiva?.terreiro_id
   const irmaos = useIrmaos(terreiro)
@@ -101,20 +102,19 @@ export default function Relatorios() {
   if (!ehZelador(casaAtiva)) return <div className="pagina"><p>Só o zelador vê os relatórios.</p></div>
 
   const secoes: [string, string, boolean][] = [
-    ['financeiro', '💰 Financeiro', modulos.financeiro],
-    ['escalas', '🧹 Escalas', modulos.escalas],
-    ['funcoes', '📋 Funções', modulos.funcoes],
-    ['filhos', '👥 Filhos e uso', true],
-    ['fichas', '🩺 Fichas', modulos.fichas && temPermissao(casaAtiva, 'fichas')],
-    ['senhas', '🎟️ Giras', modulos.senhas],
-    ['mapa', '🗺️ Mapa', modulos.mapa],
-    ['materiais', '📦 Materiais', modulos.materiais],
+    ['financeiro', 'Financeiro', modulos.financeiro],
+    ['escalas', 'Escalas', modulos.escalas],
+    ['funcoes', 'Funções', modulos.funcoes],
+    ['filhos', 'Filhos e uso', true],
+    ['fichas', 'Fichas', modulos.fichas && temPermissao(casaAtiva, 'fichas')],
+    ['senhas', 'Giras', modulos.senhas],
+    ['mapa', 'Mapa', modulos.mapa],
+    ['materiais', 'Materiais', modulos.materiais],
   ]
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa/gestao')}>← Gestão da casa</button>
-      <h1>Relatórios</h1>
+      <Topo titulo="Relatórios" voltar={'/casa/gestao'} />
       <p className="sutil">{casaAtiva?.terreiros?.nome} · números atualizados agora</p>
 
       <nav className="chips indice-relatorios">
@@ -145,12 +145,12 @@ export default function Relatorios() {
 // Peças
 // ---------------------------------------------------------------------
 
-function Secao({ id, titulo, children, planilha }: { id: string; titulo: string; children: ReactNode; planilha?: () => void }) {
+function Secao({ id, titulo, children, planilha }: { id: string; titulo: ReactNode; children: ReactNode; planilha?: () => void }) {
   return (
     <section id={id} className="relatorio">
       <div className="cabecalho">
         <h2>{titulo}</h2>
-        {planilha && <button className="link" onClick={planilha}>⬇️ Planilha</button>}
+        {planilha && <button className="link" onClick={planilha}><Download size={16} aria-hidden /> Planilha</button>}
       </div>
       {children}
     </section>
@@ -262,7 +262,7 @@ function RelFinanceiro({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
   ])
 
   return (
-    <Secao id="financeiro" titulo="💰 Financeiro" planilha={planilha}>
+    <Secao id="financeiro" titulo={<><Wallet size={20} aria-hidden /> Financeiro</>} planilha={planilha}>
       <div className="indicadores">
         <Numero valor={emDia} rotulo="filhos em dia" tom="bom" />
         <Numero valor={emAtraso.length} rotulo="com pagamento em atraso" tom={emAtraso.length ? 'ruim' : undefined} />
@@ -279,7 +279,7 @@ function RelFinanceiro({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
 
       <h3>Quem está em atraso</h3>
       <Tabela cabecalho={['Filho', 'Em atraso', 'Valor']}
-        vazio="Ninguém em atraso. 🎉"
+        vazio="Ninguém em atraso."
         linhas={emAtraso.sort((a, b) => b.atrasadas - a.atrasadas).map((f) => [
           nomeDe(irmaos, f.m.perfil_id), `${f.atrasadas} cobrança(s)`, formatarReais(f.aberto),
         ])} />
@@ -336,7 +336,7 @@ function RelEscalas({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
   ])
 
   return (
-    <Secao id="escalas" titulo="🧹 Participação nas escalas" planilha={planilha}>
+    <Secao id="escalas" titulo={<><Brush size={20} aria-hidden /> Participação nas escalas</>} planilha={planilha}>
       <div className="indicadores">
         <Numero valor={passadas.size} rotulo="escalas no último ano" />
         <Numero valor={porFilho.filter((f) => f.veio + f.semMarca > 0).length} rotulo="filhos já participaram" tom="bom" />
@@ -359,7 +359,7 @@ function RelEscalas({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
         </>
       )}
       <h3>Ainda não participaram de nenhuma escala</h3>
-      <p>{nunca.length ? nunca.map((f) => nomeDe(irmaos, f.id)).join(', ') : <span className="sutil">Todos já participaram. 🙌</span>}</p>
+      <p>{nunca.length ? nunca.map((f) => nomeDe(irmaos, f.id)).join(', ') : <span className="sutil">Todos já participaram.</span>}</p>
     </Secao>
   )
 }
@@ -400,7 +400,7 @@ function RelFuncoes({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
   ])
 
   return (
-    <Secao id="funcoes" titulo="📋 Funções e obrigações" planilha={planilha}>
+    <Secao id="funcoes" titulo={<><ClipboardList size={20} aria-hidden /> Funções e obrigações</>} planilha={planilha}>
       <div className="indicadores">
         <Numero valor={d.obrigacoes.length} rotulo="funções/obrigações da casa" />
         <Numero valor={porFilho.filter((f) => f.itens > 0).length} rotulo="filhos já contribuíram" tom="bom" />
@@ -426,7 +426,7 @@ function RelFuncoes({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
         </>
       )}
       <h3>Ainda não contribuíram</h3>
-      <p>{nunca.length ? nunca.map((f) => nomeDe(irmaos, f.id)).join(', ') : <span className="sutil">Todos já contribuíram. 🙌</span>}</p>
+      <p>{nunca.length ? nunca.map((f) => nomeDe(irmaos, f.id)).join(', ') : <span className="sutil">Todos já contribuíram.</span>}</p>
     </Secao>
   )
 }
@@ -455,7 +455,7 @@ function RelFilhos({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
   ])
 
   return (
-    <Secao id="filhos" titulo="👥 Filhos e uso do app" planilha={planilha}>
+    <Secao id="filhos" titulo={<><Users size={20} aria-hidden /> Filhos e uso do app</>} planilha={planilha}>
       <div className="indicadores">
         <Numero valor={aprovados.length} rotulo="filhos na casa" />
         <Numero valor={novos.length} rotulo="entraram nos últimos 90 dias" tom="bom" />
@@ -509,7 +509,7 @@ function RelFichas({ fichas }: { fichas: ResumoFicha[] }) {
   ])
 
   return (
-    <Secao id="fichas" titulo="🩺 Fichas dos filhos" planilha={planilha}>
+    <Secao id="fichas" titulo={<><Stethoscope size={20} aria-hidden /> Fichas dos filhos</>} planilha={planilha}>
       <div className="indicadores">
         <Numero valor={`${preenchidas.length}/${fichas.length}`} rotulo="fichas preenchidas" tom={preenchidas.length < fichas.length ? 'alerta' : 'bom'} />
         <Numero valor={aniversarios.length} rotulo="aniversariantes do mês" />
@@ -517,7 +517,7 @@ function RelFichas({ fichas }: { fichas: ResumoFicha[] }) {
         <Numero valor={remedios.length} rotulo="tomam remédio contínuo" />
       </div>
 
-      <h3>🎂 Aniversariantes</h3>
+      <h3 className="icone-texto"><Cake size={18} aria-hidden /> Aniversariantes</h3>
       <Tabela cabecalho={['Filho', 'Dia', 'Faz']} vazio="Ninguém faz aniversário este mês (ou falta preencher a data)."
         linhas={[...aniversarios, ...proximoMes].map((f) => [
           <Link key={f.perfil_id} to={`/casa/fichas/${f.perfil_id}`}>{f.apelido}</Link>,
@@ -534,7 +534,7 @@ function RelFichas({ fichas }: { fichas: ResumoFicha[] }) {
         </>
       )}
 
-      <h3>⚠️ Atenção à saúde (para giras e obrigações)</h3>
+      <h3 className="icone-texto"><TriangleAlert size={18} aria-hidden /> Atenção à saúde (para giras e obrigações)</h3>
       <Tabela cabecalho={['Filho', 'Alergias', 'Saúde', 'Remédio contínuo']} vazio="Ninguém informou alergia, problema de saúde ou remédio contínuo."
         linhas={fichas.filter((f) => f.alergias || f.condicoes_saude || f.remedios_continuos).map((f) => [
           <Link key={f.perfil_id} to={`/casa/fichas/${f.perfil_id}`}>{f.apelido}</Link>, f.alergias ?? '—', f.condicoes_saude ?? '—', f.remedios_continuos || '—',
@@ -551,7 +551,7 @@ function RelSenhas({ senhas }: { senhas: NonNullable<Dados['senhas']> }) {
   const total = senhas.reduce((s, x) => s + x.total, 0)
   const atendidas = senhas.reduce((s, x) => s + x.atendidas, 0)
   return (
-    <Secao id="senhas" titulo="🎟️ Atendimentos nas giras">
+    <Secao id="senhas" titulo={<><Ticket size={20} aria-hidden /> Atendimentos nas giras</>}>
       <div className="indicadores">
         <Numero valor={senhas.length} rotulo="giras com senha" />
         <Numero valor={senhas.length ? Math.round(total / senhas.length) : 0} rotulo="pessoas por gira, em média" />
@@ -572,7 +572,7 @@ function RelMapa({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
   const contagem = new Map<string, number>()
   for (const p of d.pontos) if (p.criado_por) contagem.set(p.criado_por, (contagem.get(p.criado_por) ?? 0) + 1)
   return (
-    <Secao id="mapa" titulo="🗺️ Mapa de folhas">
+    <Secao id="mapa" titulo={<><IconeMapa size={20} aria-hidden /> Mapa de folhas</>}>
       <div className="indicadores">
         <Numero valor={d.pontos.length} rotulo="pontos marcados pela casa" />
         <Numero valor={d.pontos.filter((p) => p.status === 'pendente').length} rotulo="esperando validação" />
@@ -589,7 +589,7 @@ function RelMateriais({ d }: { d: Dados }) {
   for (const s of d.saidas) uso.set(s.material_id, (uso.get(s.material_id) ?? 0) + Number(s.quantidade))
   const maisUsados = [...uso.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
   return (
-    <Secao id="materiais" titulo="📦 Materiais">
+    <Secao id="materiais" titulo={<><Package size={20} aria-hidden /> Materiais</>}>
       <div className="indicadores">
         <Numero valor={d.materiais.length} rotulo="materiais cadastrados" />
         <Numero valor={acabando.length} rotulo="no mínimo ou acabando" tom={acabando.length ? 'ruim' : undefined} />

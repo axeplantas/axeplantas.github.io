@@ -1,3 +1,4 @@
+import { Leaf } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { semAcento } from '../lib/texto'
@@ -27,7 +28,7 @@ export default function SeletorFolha({ folhas, valor, aoMudar, linkNova = true }
     return (
       <div className="folha-escolhida">
         <span>
-          🌿 <strong>{escolhida.nome_popular}</strong>
+          <Leaf size={18} aria-hidden /> <strong>{escolhida.nome_popular}</strong>
           {escolhida.status === 'pendente' && <span className="sutil"> (em validação)</span>}
         </span>
         <button type="button" className="link" onClick={() => { aoMudar(''); setBusca('') }}>Trocar</button>

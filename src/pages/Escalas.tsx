@@ -1,11 +1,13 @@
+import { CalendarDays, Check, CircleCheck, CircleX, Clock, Hand } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { avisar } from '../lib/avisos'
 import { diaMes, hojeIso, nomeDe, useIrmaos } from '../lib/casa'
 import { ehEquipe, temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import type { Escala, Irmao, ModoEscala, PessoaEscala } from '../lib/tipos'
 import { confirmar } from '../lib/dialogo'
+import Topo from '../components/Topo'
 
 const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
@@ -17,7 +19,6 @@ function quando(e: Escala): string {
 /** Escalas da casa: limpeza, cozinha, portão... */
 export default function Escalas() {
   const { perfil, casaAtiva } = useSessao()
-  const navegar = useNavigate()
   const [params] = useSearchParams()
   const terreiro = casaAtiva?.terreiro_id
   const irmaos = useIrmaos(terreiro)
@@ -49,11 +50,7 @@ export default function Escalas() {
 
   return (
     <div className="pagina">
-      <button className="link" onClick={() => navegar('/casa')}>← Casa</button>
-      <div className="cabecalho">
-        <h1>Escalas</h1>
-        {organiza && !criando && <button className="botao" onClick={() => setCriando(true)}>+ Nova</button>}
-      </div>
+      <Topo titulo="Escalas" voltar={'/casa'} acao={<>{organiza && !criando && <button className="botao" onClick={() => setCriando(true)}>+ Nova</button>}</>} />
       <p className="sutil">Limpeza, cozinha, portão, montagem da festa: quem está em cada tarefa.</p>
 
       {criando && terreiro && (
@@ -130,8 +127,8 @@ function CartaoEscala({ escala, pessoas, irmaos, eu, organiza, aoMudar, passada 
       <button className="cabecalho-botao" onClick={() => setAberta(!aberta)}>
         <span>
           <strong>{escala.titulo}</strong>
-          <div className="sutil">📅 {quando(escala)}{escala.local && ` · 📍 ${escala.local}`}</div>
-          <div className="sutil">{resumo}{completa && ' · completa ✅'}</div>
+          <div className="sutil icone-texto"><CalendarDays size={14} aria-hidden /> {quando(escala)}{escala.local && ` · ${escala.local}`}</div>
+          <div className="sutil">{resumo}{completa && ' · completa'}</div>
         </span>
         <span aria-hidden>{aberta ? '▲' : '▼'}</span>
       </button>
@@ -144,20 +141,20 @@ function CartaoEscala({ escala, pessoas, irmaos, eu, organiza, aoMudar, passada 
         <div className="linha escala-acoes">
           {escala.modo === 'vagas' ? (
             minha?.status === 'confirmado'
-              ? <><span className="etiqueta situacao-confirmado">✅ Você está na escala</span><button className="link perigo" onClick={() => responder(false)}>Sair</button></>
+              ? <><span className="etiqueta situacao-confirmado icone-texto"><Check size={14} aria-hidden /> Você está na escala</span><button className="link perigo" onClick={() => responder(false)}>Sair</button></>
               : completa
                 ? <span className="sutil">Vagas preenchidas.</span>
-                : <button className="primario" onClick={() => responder(true)}>🙋 Quero participar</button>
+                : <button className="primario" onClick={() => responder(true)}><Hand size={18} aria-hidden /> Quero participar</button>
           ) : minha ? (
             minha.status === 'convocado' ? (
               <>
-                <button className="primario" onClick={() => responder(true)}>✅ Vou</button>
+                <button className="primario" onClick={() => responder(true)}><Check size={18} aria-hidden /> Vou</button>
                 <button className="botao" onClick={() => responder(false)}>Não posso</button>
               </>
             ) : (
               <>
                 <span className={`etiqueta ${minha.status === 'confirmado' ? 'situacao-confirmado' : 'situacao-recusado'}`}>
-                  {minha.status === 'confirmado' ? '✅ Você confirmou' : 'Você disse que não pode'}
+                  {minha.status === 'confirmado' ? 'Você confirmou' : 'Você disse que não pode'}
                 </span>
                 <button className="link" onClick={() => responder(minha.status !== 'confirmado')}>Mudar resposta</button>
               </>
@@ -180,7 +177,7 @@ function CartaoEscala({ escala, pessoas, irmaos, eu, organiza, aoMudar, passada 
               .map((p) => (
                 <li key={p.perfil_id}>
                   <span className="cresce">
-                    {p.status === 'confirmado' ? '✅' : p.status === 'recusou' ? '❌' : '⏳'} {nomeDe(irmaos, p.perfil_id)}
+                    {p.status === 'confirmado' ? <CircleCheck size={16} className="cor-ok" aria-hidden /> : p.status === 'recusou' ? <CircleX size={16} className="cor-perigo" aria-hidden /> : <Clock size={16} className="cor-sutil" aria-hidden />} {nomeDe(irmaos, p.perfil_id)}
                   </span>
                   {organiza && (passada || escala.data === hojeIso()) && p.status !== 'recusou' && (
                     <span className="chips">
