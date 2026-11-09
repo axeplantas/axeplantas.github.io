@@ -5,6 +5,7 @@ import { MODULOS, type Modulo, type Modulos } from '../lib/modulos'
 import { ehGestorFinanceiro, ehZelador, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
 import type { FinanceiroCasa } from '../lib/tipos'
+import ConfigurarFicha from '../components/ConfigurarFicha'
 import Topo from '../components/Topo'
 
 const DIAS_AVISO = [7, 5, 3, 2, 1, 0]
@@ -63,6 +64,8 @@ export default function Configuracoes() {
           </button>
         )}
       </section>
+
+      {modulos.fichas && <ConfigurarFicha terreiro={terreiro} />}
 
       {modulos.financeiro && ehGestorFinanceiro(casaAtiva) && <Lembretes terreiro={terreiro} />}
 

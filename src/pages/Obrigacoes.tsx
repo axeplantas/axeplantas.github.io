@@ -18,27 +18,32 @@ export function formatarData(data: string | null): string {
 }
 
 export default function Obrigacoes() {
-  const { perfil } = useSessao()
+  const { casaAtiva } = useSessao()
+  const terreiro = casaAtiva?.terreiro_id
   const navegar = useNavigate()
   const [lista, setLista] = useState<Resumo[]>([])
   const [carregando, setCarregando] = useState(true)
   const [criando, setCriando] = useState(false)
 
+  // Só as funções desta casa: quem é de várias casas vê cada rito no seu lugar.
   useEffect(() => {
-    Promise.all([
-      supabase.from('obrigacoes').select('*').order('created_at'),
-      supabase.from('obrigacao_itens').select('obrigacao_id, colhida'),
-    ]).then(([o, i]) => {
-      const itens = (i.data ?? []) as { obrigacao_id: string; colhida: boolean }[]
-      const resumos = ((o.data ?? []) as Obrigacao[]).map((ob) => {
+    if (!terreiro) return
+    ;(async () => {
+      const { data } = await supabase.from('obrigacoes').select('*').eq('terreiro_id', terreiro).order('created_at')
+      const obrigacoes = (data ?? []) as Obrigacao[]
+      const { data: i } = obrigacoes.length
+        ? await supabase.from('obrigacao_itens').select('obrigacao_id, colhida').in('obrigacao_id', obrigacoes.map((o) => o.id))
+        : { data: [] }
+      const itens = (i ?? []) as { obrigacao_id: string; colhida: boolean }[]
+      const resumos = obrigacoes.map((ob) => {
         const meus = itens.filter((it) => it.obrigacao_id === ob.id)
         return { ...ob, total: meus.length, colhidas: meus.filter((it) => it.colhida).length }
       })
       // Mais recentes primeiro
       setLista(resumos.reverse())
       setCarregando(false)
-    })
-  }, [])
+    })()
+  }, [terreiro])
 
   return (
     <div className="pagina">
@@ -61,7 +66,7 @@ export default function Obrigacoes() {
                 <strong>{o.nome}</strong>
                 <div className="sutil">
                   {o.data && `${formatarData(o.data)} · `}
-                  {o.visibilidade === 'terreiro' ? (perfil?.terreiros?.nome ?? 'Meu terreiro') : 'Só eu'}
+                  {o.visibilidade === 'terreiro' ? (casaAtiva?.terreiros?.nome ?? 'Minha casa') : 'Só eu'}
                 </div>
               </div>
               <div className="progresso-numero">

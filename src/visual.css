@@ -799,3 +799,179 @@ input[type='checkbox'].interruptor {
   height: 28px;
   accent-color: auto;
 }
+
+/* ---------- Configuração da ficha ---------- */
+
+.grupo-config {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-pequeno);
+  overflow: hidden;
+}
+
+.grupo-config h3 {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  background: var(--superficie-2);
+  font-size: 0.85rem;
+  color: var(--sutil);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.linha-config {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 52px;
+  padding: 0.45rem 0.9rem;
+  border-top: 1px solid var(--borda);
+  font-weight: 400 !important;
+  font-size: 0.95rem;
+}
+
+.linha-config.proprio {
+  background: color-mix(in srgb, var(--verde-claro) 45%, transparent);
+}
+
+.novo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+  box-shadow: none;
+  background: var(--superficie-2);
+}
+
+.novo-campo label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.novo-campo .linha {
+  align-items: flex-end;
+}
+
+.dica {
+  font-size: 0.85rem;
+  color: var(--sutil);
+}
+
+/* ---------- Agenda geral ---------- */
+
+.cartao-agenda {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0 0 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--sombra-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.cartao-agenda .cresce,
+.item-agenda .cresce {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.cartao-agenda .sutil {
+  font-size: 0.85rem;
+}
+
+.chevron {
+  color: var(--borda-forte);
+  flex: none;
+}
+
+.filtro-casas {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0 -16px 0.5rem;
+  padding: 0 16px 0.25rem;
+  scrollbar-width: none;
+}
+
+.filtro-casas .chip {
+  flex: none;
+  white-space: nowrap;
+}
+
+.dia-agenda h2 {
+  margin: 1.1rem 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--sutil);
+  text-transform: capitalize;
+  letter-spacing: 0.01em;
+}
+
+.dia-agenda h2.hoje {
+  color: var(--verde);
+}
+
+.dia-agenda .lista {
+  margin-top: 0;
+}
+
+.item-agenda {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.8rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+}
+
+.item-agenda:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.item-agenda .sutil {
+  font-size: 0.85rem;
+}
+
+.casa-etiqueta {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--superficie-2);
+  border: 1px solid var(--borda);
+  color: var(--sutil);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.cartao.vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.resumo-casa {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.resumo-casa > .sutil {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.resumo-casa .indicadores {
+  margin-top: 0.4rem;
+}

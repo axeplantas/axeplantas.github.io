@@ -1,4 +1,4 @@
-import { BadgeCheck, Brush, CalendarDays, ChevronRight, ClipboardList, FolderLock, Package, Settings2, Stethoscope, Ticket, Wallet } from 'lucide-react'
+import { BadgeCheck, Brush, CalendarClock, CalendarDays, ChevronRight, ClipboardList, FolderLock, Package, Settings2, Stethoscope, Ticket, Wallet } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Topo from '../components/Topo'
@@ -11,7 +11,7 @@ import { formatarDataCurta, type Escala, type Evento, type PessoaEscala } from '
 
 /** Aba "Casa": tudo o que é da casa ativa, num só lugar (só o que o zelador deixou ligado). */
 export default function Casa() {
-  const { perfil, casaAtiva, modulos } = useSessao()
+  const { perfil, casaAtiva, casas, modulos } = useSessao()
   const terreiro = casaAtiva?.terreiro_id
   const [proximo, setProximo] = useState<Evento | null>(null)
   const [paraConferir, setParaConferir] = useState(0)
@@ -70,6 +70,19 @@ export default function Casa() {
     <div className="pagina">
       <Topo titulo="Casa" />
       <TrocarCasa />
+
+      <Link to="/agenda" className="cartao-agenda">
+        <span className="tile azul" aria-hidden><CalendarClock size={22} /></span>
+        <span className="cresce">
+          <strong>Minha agenda</strong>
+          <span className="sutil">
+            {casas.filter((c) => c.aprovado).length > 1
+              ? `Festas, escalas, funções e pagamentos das suas ${casas.filter((c) => c.aprovado).length} casas`
+              : 'Festas, escalas, funções e pagamentos'}
+          </span>
+        </span>
+        <ChevronRight size={20} className="chevron" aria-hidden />
+      </Link>
 
       {ehZelador(casaAtiva) && (
         <Link to="/casa/gestao" className="cartao-gestao">

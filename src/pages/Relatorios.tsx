@@ -255,6 +255,9 @@ function RelFinanceiro({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
       aVencer: c.vencimento >= hoje, vencimento: c.vencimento }
   })
 
+  const competenciaAtual = `${hoje.slice(0, 7)}-01`
+  const mesAtual = meses.find((_, i) => mensalidades.slice(-6)[i]?.competencia === competenciaAtual)
+
   const planilha = () => baixarPlanilha('financeiro-por-filho', [
     ['Filho', 'Situação', 'Cobranças vencidas', 'Pagas', 'Pagas no prazo', 'Aguardando conferência', 'Em atraso', 'Valor em atraso'],
     ...porFilho.map((f) => [nomeDe(irmaos, f.m.perfil_id), f.m.isento ? 'Isento' : f.situacao === 'atraso' ? 'Em atraso' : f.situacao === 'as_vezes' ? 'Paga, mas atrasa' : 'Em dia',
@@ -264,11 +267,19 @@ function RelFinanceiro({ d, irmaos }: { d: Dados; irmaos: Irmao[] }) {
   return (
     <Secao id="financeiro" titulo={<><Wallet size={20} aria-hidden /> Financeiro</>} planilha={planilha}>
       <div className="indicadores">
-        <Numero valor={emDia} rotulo="filhos em dia" tom="bom" />
+        <Numero valor={mesAtual ? mesAtual.pagos : '—'} rotulo={mesAtual ? `pagaram ${mesAtual.rotulo}` : 'sem mensalidade este mês'} tom="bom" />
+        <Numero valor={mesAtual ? mesAtual.total - mesAtual.pagos - mesAtual.aguardando : '—'}
+          rotulo={mesAtual?.aVencer ? `ainda não pagaram (vence ${diaMes(mesAtual.vencimento)})` : 'não pagaram o mês'}
+          tom={mesAtual && mesAtual.total - mesAtual.pagos - mesAtual.aguardando > 0 ? 'alerta' : undefined} />
         <Numero valor={emAtraso.length} rotulo="com pagamento em atraso" tom={emAtraso.length ? 'ruim' : undefined} />
-        <Numero valor={asVezes} rotulo="pagam, mas costumam atrasar" tom={asVezes ? 'alerta' : undefined} />
         <Numero valor={<span className="pequeno">{formatarReais(totalAberto)}</span>} rotulo="em atraso no total" />
       </div>
+      {emDia > 0 && (
+        <p className="sutil">
+          Ninguém com atraso: {emDia} filho(s){asVezes ? ` · ${asVezes} pagam, mas costumam atrasar` : ''}. “Ainda não pagaram”
+          são os que têm mensalidade a vencer e não mandaram comprovante.
+        </p>
+      )}
 
       <h3>Mensalidade: quantos pagaram, mês a mês</h3>
       <Barras linhas={meses.map((m) => ({

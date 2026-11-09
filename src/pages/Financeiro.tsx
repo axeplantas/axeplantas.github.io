@@ -77,6 +77,11 @@ export default function Financeiro() {
       <Topo titulo="Financeiro" voltar={'/casa'} />
       <p className="sutil">{casaAtiva.terreiros?.nome}</p>
 
+      {gestor && carregado && (
+        <ResumoCasa config={config} cobrancas={cobrancas} pagamentos={pagamentos} alvos={alvos} membros={membros}
+          aoVer={() => setAba('situacao')} aoConferir={() => setAba('conferir')} />
+      )}
+
       {gestor && (
         <div className="abas abas-rolaveis">
           <button className={aba === 'minhas' ? 'ativa' : ''} onClick={() => setAba('minhas')}>Minhas</button>
@@ -105,6 +110,68 @@ export default function Financeiro() {
         <Contribuicoes terreiro={terreiro} cobrancas={cobrancas} membros={membros} aoMudar={carregar} />
       )}
       {carregado && aba === 'configurar' && <Configurar terreiro={terreiro} config={config} aoSalvar={carregar} />}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------
+// Zelador/contador: como a casa está (independe da situação pessoal)
+// ---------------------------------------------------------------------
+
+function ResumoCasa({ config, cobrancas, pagamentos, alvos, membros, aoVer, aoConferir }: {
+  config: FinanceiroCasa | null
+  cobrancas: Cobranca[]
+  pagamentos: Pagamento[]
+  alvos: Set<string>
+  membros: MembroDaCasa[]
+  aoVer: () => void
+  aoConferir: () => void
+}) {
+  const dia = hoje()
+  const situacao = (c: Cobranca, perfilId: string) => pagamentos.find((p) => p.cobranca_id === c.id && p.perfil_id === perfilId)?.status
+  const mesAtual = cobrancas.find((c) => c.tipo === 'mensalidade' && c.competencia === `${dia.slice(0, 7)}-01`)
+
+  let pagos = 0, conferir = 0, faltam = 0
+  if (mesAtual) {
+    for (const m of membros.filter((x) => seAplica(mesAtual, x, config, alvos))) {
+      const st = situacao(mesAtual, m.perfil_id)
+      if (st === 'confirmado' || st === 'isento') pagos++
+      else if (st === 'informado') conferir++
+      else faltam++
+    }
+  }
+  // Em atraso: qualquer cobrança vencida que a pessoa não pagou nem mandou comprovante.
+  const atrasados = new Map<string, number>()
+  for (const c of cobrancas.filter((x) => x.vencimento < dia)) {
+    for (const m of membros.filter((x) => seAplica(c, x, config, alvos))) {
+      const st = situacao(c, m.perfil_id)
+      if (!st || st === 'recusado') atrasados.set(m.perfil_id, (atrasados.get(m.perfil_id) ?? 0) + valorDe(c, m, config))
+    }
+  }
+  const valorAtraso = [...atrasados.values()].reduce((a, b) => a + b, 0)
+
+  if (!config?.cobra_mensalidade && cobrancas.length === 0) return null
+
+  return (
+    <div className="resumo-casa">
+      <span className="sutil">Situação da casa{mesAtual ? ` · ${mesAtual.titulo.replace('Mensalidade de ', '')}` : ''}</span>
+      <div className="indicadores">
+        <button className="indicador bom" onClick={aoVer}>
+          <span className="indicador-numero">{pagos}</span><span>pagaram o mês</span>
+        </button>
+        <button className={`indicador ${faltam ? 'atencao-num' : ''}`} onClick={aoVer}>
+          <span className="indicador-numero">{faltam}</span>
+          <span>ainda não pagaram{mesAtual && mesAtual.vencimento >= dia ? ` (vence ${formatarDataCurta(mesAtual.vencimento).slice(0, 5)})` : ''}</span>
+        </button>
+        <button className={`indicador ${atrasados.size ? 'alerta' : ''}`} onClick={aoVer}>
+          <span className="indicador-numero">{atrasados.size}</span>
+          <span>em atraso{valorAtraso ? ` · ${formatarReais(valorAtraso)}` : ''}</span>
+        </button>
+        <button className="indicador" onClick={aoConferir}>
+          <span className="indicador-numero">{conferir || pagamentos.filter((p) => p.status === 'informado').length}</span>
+          <span>comprovante(s) para conferir</span>
+        </button>
+      </div>
     </div>
   )
 }
@@ -151,7 +218,12 @@ function Minhas({ eu, terreiro, config, cobrancas, pagamentos, alvos, gestor, ao
 
       <div className={`cartao resumo-financeiro ${emAberto.length === 0 ? 'em-dia' : ''}`}>
         {emAberto.length === 0 ? (
-          <strong className="icone-texto"><CircleCheck size={20} aria-hidden /> Você está em dia com a casa.</strong>
+          <strong className="icone-texto">
+            <CircleCheck size={20} aria-hidden />
+            {eu.isento && minhas.every((x) => x.c.tipo !== 'mensalidade')
+              ? (gestor ? 'Você é isento(a) da mensalidade nesta casa. A situação dos filhos está no resumo acima.' : 'Você é isento(a) da mensalidade nesta casa.')
+              : 'Seus pagamentos nesta casa estão em dia.'}
+          </strong>
         ) : (
           <>
             <strong>{emAberto.length} em aberto · {formatarReais(emAberto.reduce((s, x) => s + x.valor, 0))}</strong>

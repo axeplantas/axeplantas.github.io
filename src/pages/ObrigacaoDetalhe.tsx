@@ -36,7 +36,7 @@ export function nomeDoItem(i: ItemObrigacao): string {
 
 export default function ObrigacaoDetalhe() {
   const { id } = useParams()
-  const { perfil, casaAtiva, modulos } = useSessao()
+  const { perfil, casaAtiva, casas, modulos, trocarCasa } = useSessao()
   const navegar = useNavigate()
   const irmaos = useIrmaos(casaAtiva?.terreiro_id)
   const [obrigacao, setObrigacao] = useState<Obrigacao | null>(null)
@@ -96,6 +96,25 @@ export default function ObrigacaoDetalhe() {
 
   if (carregando) return <div className="pagina"><p className="sutil">Carregando…</p></div>
   if (!obrigacao) return <div className="pagina"><p>Função não encontrada.</p><Link to="/obrigacoes">Voltar</Link></div>
+
+  // Função de outra casa (link antigo ou aberto de fora): cada rito fica na sua casa.
+  if (casaAtiva && obrigacao.terreiro_id !== casaAtiva.terreiro_id) {
+    const outra = casas.find((c) => c.terreiro_id === obrigacao.terreiro_id)
+    return (
+      <div className="pagina">
+        <Topo titulo={obrigacao.nome} voltar="/obrigacoes" />
+        <div className="cartao">
+          <p>Esta função é de <strong>{outra?.terreiros?.nome ?? 'outra casa'}</strong>.</p>
+          <p className="sutil">Você está vendo agora {casaAtiva.terreiros?.nome}. Troque de casa para abrir.</p>
+          {outra && (
+            <button className="primario" onClick={() => trocarCasa(obrigacao.terreiro_id)}>
+              Ir para {outra.terreiros?.nome}
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   const daCasa = obrigacao.visibilidade === 'terreiro'
   const organiza = obrigacao.criado_por === perfil?.id

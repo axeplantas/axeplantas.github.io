@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import { configurado } from './lib/supabase'
 import { ehAdmin, ehValidador, useSessao } from './lib/sessao'
 import AceitarConvite from './pages/AceitarConvite'
+import Agenda from './pages/Agenda'
 import Admin from './pages/Admin'
 import Aguardando from './pages/Aguardando'
 import Calendario from './pages/Calendario'
@@ -104,6 +105,7 @@ export default function App() {
               {modulos.funcoes && <Route path="obrigacoes" element={<Obrigacoes />} />}
               {modulos.funcoes && <Route path="obrigacoes/:id" element={<ObrigacaoDetalhe />} />}
               <Route path="casa" element={<Casa />} />
+              <Route path="agenda" element={<Agenda />} />
               {modulos.financeiro && <Route path="casa/financeiro" element={<Financeiro />} />}
               {modulos.calendario && <Route path="casa/calendario" element={<Calendario />} />}
               {modulos.materiais && <Route path="casa/materiais" element={<Materiais />} />}

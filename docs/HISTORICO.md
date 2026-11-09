@@ -4,6 +4,14 @@ Entradas mais recentes no topo. Cada versão diz **o que mudou** e **por quê**.
 
 ---
 
+## v0.17 — 09/11/2026 — Cada rito na sua casa, agenda geral e ficha sob medida
+**Relatado por quem é de mais de uma casa (Candomblé e Umbanda):** a obrigação criada numa casa aparecia na outra; faltava ver tudo junto; o financeiro de teste dizia "em dia" sem ninguém ter pago.
+- **Cada coisa no seu lugar:** a tela de Funções e obrigações mostra só as da casa escolhida (inclusive as "só eu"); abrir pelo link uma função de outra casa oferece trocar de casa.
+- **Minha agenda:** festas e giras, escalas (as suas e vagas abertas), funções com data, pagamentos a vencer ou atrasados e feriados, de todas as casas, por dia; tocar num item de outra casa troca de casa e abre o item. Filtro por casa.
+- **Financeiro:** o zelador/contador vê no topo a situação da casa (pagaram o mês, ainda não pagaram, em atraso, comprovantes a conferir). A frase "em dia" era a situação pessoal (zelador isento); agora diz "Você é isento(a)". Relatório troca "filhos em dia" por "pagaram", "ainda não pagaram" e "em atraso".
+- **Mensalidades seguem a configuração:** mudar o início apaga mensalidades anteriores sem pagamento; mudar o dia de vencimento ajusta as do mês atual em diante que ninguém pagou.
+- **Ficha configurável por casa:** o zelador liga/desliga cada campo (ex.: tirar "Mestres de Jurema" no Candomblé) e cria campos próprios com título, orientação para o filho, parte da ficha e tipo de resposta. Campos desligados guardam o que já foi preenchido.
+
 ## v0.16 — 08/11/2026 — Visual profissional e limite de quantidade nos itens
 **Problema relatado:** numa função que pedia 3 galos, dava para marcar mais de 3.
 - **Limite de quantidade:** o banco não deixa combinar mais do que falta (mesmo com dois filhos marcando ao mesmo tempo); a tela mostra quanto falta e bloqueia o botão; quando o total é atingido o item fica "Completo" sozinho e os botões "Eu levo"/"Distribuir" somem. Se alguém desistir, o item volta a ficar aberto.

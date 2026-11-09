@@ -75,6 +75,13 @@ Cada decisão com o contexto, a escolha e o motivo. Úteis para quem for continu
 - **Escolha:** gatilhos no banco anotam quem fez o quê; ninguém edita nem apaga; fica 1 ano. Só o zelador vê. Para fichas, só "viu/alterou" e o nome dos campos, nunca os valores. Itens "só meus" (pontos e listas privadas) não entram.
 - **Motivo:** o zelador pediu acompanhar o uso, e as fichas precisam de prestação de contas; o registro não pode virar um novo vazamento.
 
+### D18. Cada casa vê só os seus ritos; a pessoa vê tudo na própria agenda
+- **Escolha:** telas da casa filtram pela casa escolhida; a "Minha agenda" junta as casas da pessoa. Tocar num item de outra casa troca a casa antes de abrir.
+- **Motivo:** cada terreiro tem seus ritos; misturar confunde e expõe o que é de uma casa na outra.
+
+### D19. Ficha definida pela casa
+- **Escolha:** catálogo único de campos (`src/lib/ficha.ts`); cada casa esconde os que não usa e cria até 30 campos próprios (`casa_config.ficha`, valores em `fichas.extras`). As mesmas regras de sigilo e de quem edita valem para os campos próprios.
+
 ### D11. Código aberto no GitHub
 - **Motivo:** o GitHub Pages gratuito exige repositório público. Nenhum dado dos terreiros fica no código.
 - **Revisitar:** se houver investimento, avaliar repositório privado com outra hospedagem.

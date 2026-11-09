@@ -308,6 +308,7 @@ export interface Ficha {
   mestres: string | null
   entidades: string | null
   observacoes: string | null
+  extras?: Record<string, string>
   consentimento_em: string | null
   atualizado_em: string
   atualizado_por: string | null

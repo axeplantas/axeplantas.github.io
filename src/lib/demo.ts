@@ -292,6 +292,17 @@ Object.assign(banco, {
   ],
 })
 banco.obrigacoes[0].filho_id = 'demo-m1'
+// Na demonstração, "Você" também é filho de uma segunda casa (para ver a agenda geral e a separação por casa).
+queueMicrotask(() => {
+  banco.membros.push({ perfil_id: EU, terreiro_id: T2, papel: 'membro', aprovado: true, contador: false, isento: false,
+    mensalidade_valor: null, permissoes: [], aprovado_em: new Date(Date.now() - 200 * DIA).toISOString(), created_at: new Date().toISOString() })
+})
+banco.eventos.push(
+  { id: 'ev1', terreiro_id: T1, titulo: 'Festa de Ogum', tipo: 'festa', data: iso(5), hora: '20:00:00', hora_fim: null, local: 'Barracão', descricao: null, criado_por: EU },
+  { id: 'ev2', terreiro_id: T2, titulo: 'Gira de Exu', tipo: 'gira', data: iso(2), hora: '19:30:00', hora_fim: null, local: null, descricao: null, criado_por: 'demo-m1' },
+)
+banco.obrigacoes.push({ id: 'o2', nome: 'Amaci de Umbanda (só eu)', data: iso(9), observacao: null, visibilidade: 'privado',
+  terreiro_id: T2, criado_por: EU, created_at: new Date().toISOString() })
 banco.escala_pessoas.forEach((p) => { p.created_at ??= new Date(Date.now() - 12 * DIA).toISOString() })
 
 // Financeiro de exemplo: 4 meses de mensalidade, com quem paga em dia, quem atrasa e quem está devendo.
@@ -363,6 +374,12 @@ function rpcNovasSemRecalculo(nome: string, a: any): { data: any; error: any } |
     case 'definir_permissoes': {
       const m = banco.membros.find((x) => x.perfil_id === a.p_usuario && x.terreiro_id === a.p_terreiro)
       if (m) m.permissoes = a.p_permissoes
+      return ok()
+    }
+    case 'configurar_ficha': {
+      const c = banco.casa_config.find((x) => x.terreiro_id === a.p_terreiro)
+      if (c) c.ficha = a.p_ficha
+      else banco.casa_config.push({ terreiro_id: a.p_terreiro, modulos: {}, ficha: a.p_ficha })
       return ok()
     }
     case 'abrir_ficha': return ok(banco.fichas.find((f) => f.perfil_id === a.p_perfil && f.terreiro_id === a.p_terreiro) ?? null)
@@ -529,7 +546,12 @@ export function criarClienteDemo(): any {
         alert('Demonstração: a conta seria excluída agora. Nada foi apagado.')
         return { data: null, error: null }
       }
-      if (['garantir_mensalidades', 'trocar_casa', 'definir_acesso_materiais'].includes(nome)) return { data: null, error: null }
+      if (nome === 'trocar_casa') {
+        const v = banco.membros.find((x) => x.perfil_id === EU && x.terreiro_id === args.p_terreiro)
+        Object.assign(banco.perfis.find((x) => x.id === EU)!, { terreiro_id: args.p_terreiro, papel: v?.papel ?? 'membro' })
+        return { data: null, error: null }
+      }
+      if (['garantir_mensalidades', 'definir_acesso_materiais'].includes(nome)) return { data: null, error: null }
       if (nome === 'pode_ver_materiais' || nome === 'pode_editar_materiais') return { data: true, error: null }
       if (nome === 'atualizar_membro') {
         const v = banco.membros.find((x) => x.perfil_id === args.p_usuario && x.terreiro_id === args.p_terreiro)

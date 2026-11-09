@@ -5,10 +5,11 @@ import { avisar } from '../lib/avisos'
 import { useIrmaos, nomeDe } from '../lib/casa'
 import { ehZelador, temPermissao, useSessao } from '../lib/sessao'
 import { mensagemDeErro, supabase } from '../lib/supabase'
+import { CAMPOS_FICHA, ROTULO_SECAO, useConfigFicha, type CampoExtra, type SecaoFicha } from '../lib/ficha'
 import { formatarDataCurta, idade, type Ficha as TipoFicha, type Medicamento } from '../lib/tipos'
 import Topo from '../components/Topo'
 
-type Campos = Omit<TipoFicha, 'perfil_id' | 'terreiro_id' | 'consentimento_em' | 'atualizado_em' | 'atualizado_por'>
+type Campos = Omit<TipoFicha, 'perfil_id' | 'terreiro_id' | 'consentimento_em' | 'atualizado_em' | 'atualizado_por' | 'extras'>
 
 const VAZIA: Campos = {
   nome_completo: null, data_nascimento: null, telefone: null, contato_emergencia: null, tipo_sanguineo: null,
@@ -33,6 +34,8 @@ export default function Ficha() {
   const irmaos = useIrmaos(minha ? undefined : terreiro)
   const [ficha, setFicha] = useState<TipoFicha | null>(null)
   const [campos, setCampos] = useState<Campos>(VAZIA)
+  const [extras, setExtras] = useState<Record<string, string>>({})
+  const [config] = useConfigFicha(terreiro)
   const [carregando, setCarregando] = useState(true)
   const [editando, setEditando] = useState(false)
   const [aceite, setAceite] = useState(false)
@@ -49,6 +52,7 @@ export default function Ficha() {
     const f = (data ?? null) as TipoFicha | null
     setFicha(f)
     setCampos(f ? { ...VAZIA, ...f, medicamentos: f.medicamentos ?? [] } : VAZIA)
+    setExtras((f?.extras ?? {}) as Record<string, string>)
     setEditando(minha && !f)
     setCarregando(false)
   }, [terreiro, dono, minha])
@@ -72,8 +76,8 @@ export default function Ficha() {
     setSalvando(true)
     setErro('')
     const dados = minha
-      ? { ...campos, medicamentos: campos.medicamentos.filter((m) => m.nome.trim()) }
-      : Object.fromEntries(ESPIRITUAL.map((k) => [k, campos[k]]))
+      ? { ...campos, medicamentos: campos.medicamentos.filter((m) => m.nome.trim()), extras }
+      : { ...Object.fromEntries(ESPIRITUAL.map((k) => [k, campos[k]])), extras }
     const { error } = await supabase.rpc('salvar_ficha', {
       p_perfil: dono, p_terreiro: terreiro, p_dados: dados, p_consentimento: aceite || !precisaAceite,
     })
@@ -125,51 +129,47 @@ export default function Ficha() {
         </div>
       )}
 
-      {(ficha || editando) && (
-        <>
-          <Secao titulo={<><UserRound size={20} aria-hidden /> Pessoal</>} bloqueada={editando && !minha}>
-            <Campo rotulo="Nome completo" valor={campos.nome_completo} editando={editando && minha} aoMudar={(v) => mudar('nome_completo', v)} />
-            <Campo rotulo="Data de nascimento" tipo="date" valor={campos.data_nascimento} editando={editando && minha}
-              aoMudar={(v) => mudar('data_nascimento', v)}
-              exibir={(v) => `${formatarDataCurta(v)}${anos !== null ? ` (${anos} anos)` : ''}`} />
-            <Campo rotulo="Telefone" tipo="tel" valor={campos.telefone} editando={editando && minha} aoMudar={(v) => mudar('telefone', v)} />
-            <Campo rotulo="Contato de emergência (nome e telefone)" valor={campos.contato_emergencia} editando={editando && minha}
-              aoMudar={(v) => mudar('contato_emergencia', v)} />
+      {(ficha || editando) && (['pessoal', 'saude', 'espiritual'] as SecaoFicha[]).map((secao) => {
+        const padrao = CAMPOS_FICHA.filter((c) => c.secao === secao && !config.ocultos.includes(c.chave))
+        const proprios = config.extras.filter((e) => e.secao === secao)
+        if (padrao.length + proprios.length === 0) return null
+        const pode = editando && (minha || (secao === 'espiritual' && podeEditarEspiritual))
+        const Icone = secao === 'pessoal' ? UserRound : secao === 'saude' ? HeartPulse : Sparkles
+        return (
+          <Secao key={secao} titulo={<><Icone size={20} aria-hidden /> {ROTULO_SECAO[secao]}</>} bloqueada={editando && !pode}>
+            {padrao.map((c) => {
+              const valor = campos[c.chave as keyof Campos] as string | null
+              const mudarEste = (v: string | null) => mudar(c.chave as keyof Campos, v as never)
+              switch (c.tipo) {
+                case 'remedios':
+                  return <Remedios key={c.chave} lista={campos.medicamentos} editando={pode} aoMudar={(l) => mudar('medicamentos', l)} />
+                case 'sangue':
+                  return <Campo key={c.chave} rotulo={c.rotulo} valor={valor} editando={pode} aoMudar={mudarEste}
+                    opcoes={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Não sei']} />
+                case 'nascimento':
+                  return <Campo key={c.chave} rotulo={c.rotulo} tipo="date" valor={valor} editando={pode} aoMudar={mudarEste}
+                    exibir={(v) => `${formatarDataCurta(v)}${anos !== null ? ` (${anos} anos)` : ''}`} />
+                case 'iniciacao':
+                  return <Campo key={c.chave} rotulo={c.rotulo} tipo="date" valor={valor} editando={pode} aoMudar={mudarEste}
+                    exibir={(v) => `${formatarDataCurta(v)} (${idade(v) ?? 0} ano(s) de santo)`} />
+                case 'alergia':
+                  return <Campo key={c.chave} rotulo={c.rotulo} valor={valor} editando={pode} aoMudar={mudarEste} longo
+                    destaque={Boolean(valor)} vazio="Nenhuma alergia informada" />
+                case 'tel':
+                  return <Campo key={c.chave} rotulo={c.rotulo} tipo="tel" valor={valor} editando={pode} aoMudar={mudarEste} />
+                case 'longo':
+                  return <Campo key={c.chave} rotulo={c.rotulo} valor={valor} editando={pode} aoMudar={mudarEste} longo />
+                default:
+                  return <Campo key={c.chave} rotulo={c.rotulo} valor={valor} editando={pode} aoMudar={mudarEste} />
+              }
+            })}
+            {proprios.map((e) => (
+              <CampoProprio key={e.id} campo={e} valor={extras[e.id] ?? null} editando={pode}
+                aoMudar={(v) => setExtras((x) => ({ ...x, [e.id]: v ?? '' }))} />
+            ))}
           </Secao>
-
-          <Secao titulo={<><HeartPulse size={20} aria-hidden /> Saúde</>} bloqueada={editando && !minha}>
-            <Campo rotulo="Alergias (remédios, alimentos, ervas, animais...)" valor={campos.alergias} editando={editando && minha}
-              aoMudar={(v) => mudar('alergias', v)} longo destaque={Boolean(campos.alergias)} vazio="Nenhuma alergia informada" />
-            <Campo rotulo="Problemas de saúde (pressão, diabetes, coração, gravidez...)" valor={campos.condicoes_saude}
-              editando={editando && minha} aoMudar={(v) => mudar('condicoes_saude', v)} longo />
-            <Campo rotulo="Tipo sanguíneo" valor={campos.tipo_sanguineo} editando={editando && minha}
-              aoMudar={(v) => mudar('tipo_sanguineo', v)} opcoes={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Não sei']} />
-            <Remedios lista={campos.medicamentos} editando={editando && minha} aoMudar={(l) => mudar('medicamentos', l)} />
-          </Secao>
-
-          <Secao titulo={<><Sparkles size={20} aria-hidden /> Espiritual</>}>
-            <Campo rotulo="Orixá de cabeça (pai/mãe de cabeça, Ori)" valor={campos.orixa_cabeca} editando={editando && podeEditarEspiritual}
-              aoMudar={(v) => mudar('orixa_cabeca', v)} />
-            <Campo rotulo="Juntó / segundo orixá" valor={campos.orixa_ajunto} editando={editando && podeEditarEspiritual}
-              aoMudar={(v) => mudar('orixa_ajunto', v)} />
-            <Campo rotulo="Outros orixás" valor={campos.outros_orixas} editando={editando && podeEditarEspiritual}
-              aoMudar={(v) => mudar('outros_orixas', v)} />
-            <Campo rotulo="Nome de santo (dijina)" valor={campos.nome_de_santo} editando={editando && podeEditarEspiritual}
-              aoMudar={(v) => mudar('nome_de_santo', v)} />
-            <Campo rotulo="Data de iniciação / feitura" tipo="date" valor={campos.data_iniciacao} editando={editando && podeEditarEspiritual}
-              aoMudar={(v) => mudar('data_iniciacao', v)}
-              exibir={(v) => `${formatarDataCurta(v)} (${idade(v) ?? 0} ano(s) de santo)`} />
-            <Campo rotulo="Guias (caboclos, pretos-velhos, baianos, boiadeiros...)" valor={campos.guias} longo
-              editando={editando && podeEditarEspiritual} aoMudar={(v) => mudar('guias', v)} />
-            <Campo rotulo="Mestres e mestras (Jurema)" valor={campos.mestres} longo editando={editando && podeEditarEspiritual}
-              aoMudar={(v) => mudar('mestres', v)} />
-            <Campo rotulo="Exus, pombagiras, erês e outras entidades" valor={campos.entidades} longo
-              editando={editando && podeEditarEspiritual} aoMudar={(v) => mudar('entidades', v)} />
-            <Campo rotulo="Observações" valor={campos.observacoes} longo editando={editando && podeEditarEspiritual}
-              aoMudar={(v) => mudar('observacoes', v)} />
-          </Secao>
-        </>
-      )}
+        )
+      })}
 
       {editando && (
         <div className="formulario">
@@ -195,6 +195,23 @@ export default function Ficha() {
   )
 }
 
+/** Campo criado pela casa (o zelador define o título e o que o filho deve colocar). */
+function CampoProprio({ campo, valor, editando, aoMudar }: {
+  campo: CampoExtra
+  valor: string | null
+  editando: boolean
+  aoMudar: (v: string | null) => void
+}) {
+  if (campo.tipo === 'simnao') {
+    return <Campo rotulo={campo.titulo} valor={valor} editando={editando} aoMudar={aoMudar} opcoes={['Sim', 'Não']} ajuda={campo.ajuda} />
+  }
+  if (campo.tipo === 'data') {
+    return <Campo rotulo={campo.titulo} tipo="date" valor={valor} editando={editando} aoMudar={aoMudar} ajuda={campo.ajuda}
+      exibir={(v) => formatarDataCurta(v)} />
+  }
+  return <Campo rotulo={campo.titulo} valor={valor} editando={editando} aoMudar={aoMudar} longo={campo.tipo === 'longo'} ajuda={campo.ajuda} />
+}
+
 function Secao({ titulo, bloqueada, children }: { titulo: ReactNode; bloqueada?: boolean; children: ReactNode }) {
   return (
     <section className={`cartao ficha-secao ${bloqueada ? 'bloqueada' : ''}`}>
@@ -204,7 +221,8 @@ function Secao({ titulo, bloqueada, children }: { titulo: ReactNode; bloqueada?:
   )
 }
 
-function Campo({ rotulo, valor, editando, aoMudar, tipo = 'text', longo, opcoes, destaque, vazio = '—', exibir }: {
+function Campo({ rotulo, valor, editando, aoMudar, tipo = 'text', longo, opcoes, destaque, vazio = '—', exibir, ajuda }: {
+  ajuda?: string
   rotulo: string
   valor: string | null
   editando: boolean
@@ -228,6 +246,7 @@ function Campo({ rotulo, valor, editando, aoMudar, tipo = 'text', longo, opcoes,
   return (
     <label>
       {rotulo}
+      {ajuda && <span className="dica">{ajuda}</span>}
       {opcoes ? (
         <select value={valor ?? ''} onChange={(e) => mudar(e.target.value)}>
           <option value="">—</option>
